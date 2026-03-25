@@ -1,8 +1,9 @@
 "use client"
 
-import { motion } from "framer-motion"
+import { motion, AnimatePresence } from "framer-motion"
 import { Badge } from "@/components/ui/badge"
 import { Checkbox } from "@/components/ui/checkbox"
+import { RepoCardExpanded } from "@/components/repo-card-expanded"
 import type { Repo } from "@/lib/types"
 
 interface RepoCardProps {
@@ -11,6 +12,9 @@ interface RepoCardProps {
   expanded: boolean
   onToggleSelect: () => void
   onToggleExpand: () => void
+  onRequestVisibilityChange: () => void
+  onRequestArchiveChange: () => void
+  onRequestDelete: () => void
   index: number
 }
 
@@ -20,6 +24,9 @@ export function RepoCard({
   expanded,
   onToggleSelect,
   onToggleExpand,
+  onRequestVisibilityChange,
+  onRequestArchiveChange,
+  onRequestDelete,
   index,
 }: RepoCardProps) {
   return (
@@ -62,6 +69,16 @@ export function RepoCard({
           className="mt-1 shrink-0"
         />
       </div>
+      <AnimatePresence>
+        {expanded && (
+          <RepoCardExpanded
+            repo={repo}
+            onRequestVisibilityChange={onRequestVisibilityChange}
+            onRequestArchiveChange={onRequestArchiveChange}
+            onRequestDelete={onRequestDelete}
+          />
+        )}
+      </AnimatePresence>
     </motion.div>
   )
 }
