@@ -8,7 +8,8 @@ import { FilterBar } from "@/components/filter-bar"
 import { RepoCard } from "@/components/repo-card"
 import { ConfirmModal } from "@/components/confirm-modal"
 import { DeleteModal } from "@/components/delete-modal"
-import { toggleVisibility, toggleArchive, deleteRepo } from "@/actions/repos"
+import { BulkActionBar } from "@/components/bulk-action-bar"
+import { toggleVisibility, toggleArchive, deleteRepo, bulkAction } from "@/actions/repos"
 
 const defaultFilters: FilterState = {
   search: "",
@@ -151,6 +152,107 @@ export function RepoGrid({ repos }: { repos: Repo[] }) {
     return result
   }, [repos, filters])
 
+  const selectedRepos = useMemo(
+    () => filtered.filter((r) => selectedIds.has(r.id)),
+    [filtered, selectedIds]
+  )
+
+  const bulkMakePublic = () => {
+    setConfirmModal({
+      title: `Make ${selectedRepos.length} repos public?`,
+      description: "These repositories will be visible to everyone on the internet.",
+      repos: selectedRepos.map((r) => r.name),
+      confirmLabel: "Make Public",
+      onConfirm: () => {
+        startTransition(async () => {
+          const results = await bulkAction(
+            selectedRepos.map((r) => ({ owner: r.owner.login, repo: r.name })),
+            "make_public"
+          )
+          const succeeded = results.filter((r) => r.success).length
+          const failed = results.filter((r) => !r.success).length
+          if (failed === 0) toast.success(`${succeeded} repos made public`)
+          else toast.error(`${succeeded}/${results.length} succeeded, ${failed} failed`)
+          setConfirmModal(null)
+          setSelectedIds(new Set())
+        })
+      },
+    })
+  }
+
+  const bulkMakePrivate = () => {
+    setConfirmModal({
+      title: `Make ${selectedRepos.length} repos private?`,
+      description: "These repositories will only be visible to you.",
+      repos: selectedRepos.map((r) => r.name),
+      confirmLabel: "Make Private",
+      onConfirm: () => {
+        startTransition(async () => {
+          const results = await bulkAction(
+            selectedRepos.map((r) => ({ owner: r.owner.login, repo: r.name })),
+            "make_private"
+          )
+          const succeeded = results.filter((r) => r.success).length
+          const failed = results.filter((r) => !r.success).length
+          if (failed === 0) toast.success(`${succeeded} repos made private`)
+          else toast.error(`${succeeded}/${results.length} succeeded, ${failed} failed`)
+          setConfirmModal(null)
+          setSelectedIds(new Set())
+        })
+      },
+    })
+  }
+
+  const bulkArchive = () => {
+    setConfirmModal({
+      title: `Archive ${selectedRepos.length} repos?`,
+      description: "These repositories will be archived and read-only.",
+      repos: selectedRepos.map((r) => r.name),
+      confirmLabel: "Archive",
+      onConfirm: () => {
+        startTransition(async () => {
+          const results = await bulkAction(
+            selectedRepos.map((r) => ({ owner: r.owner.login, repo: r.name })),
+            "archive"
+          )
+          const succeeded = results.filter((r) => r.success).length
+          const failed = results.filter((r) => !r.success).length
+          if (failed === 0) toast.success(`${succeeded} repos archived`)
+          else toast.error(`${succeeded}/${results.length} succeeded, ${failed} failed`)
+          setConfirmModal(null)
+          setSelectedIds(new Set())
+        })
+      },
+    })
+  }
+
+  const bulkUnarchive = () => {
+    setConfirmModal({
+      title: `Unarchive ${selectedRepos.length} repos?`,
+      description: "These repositories will be active again.",
+      repos: selectedRepos.map((r) => r.name),
+      confirmLabel: "Unarchive",
+      onConfirm: () => {
+        startTransition(async () => {
+          const results = await bulkAction(
+            selectedRepos.map((r) => ({ owner: r.owner.login, repo: r.name })),
+            "unarchive"
+          )
+          const succeeded = results.filter((r) => r.success).length
+          const failed = results.filter((r) => !r.success).length
+          if (failed === 0) toast.success(`${succeeded} repos unarchived`)
+          else toast.error(`${succeeded}/${results.length} succeeded, ${failed} failed`)
+          setConfirmModal(null)
+          setSelectedIds(new Set())
+        })
+      },
+    })
+  }
+
+  const bulkDelete = () => {
+    setDeleteTargets(selectedRepos)
+  }
+
   return (
     <>
       <FilterBar filters={filters} languages={languages} onChange={setFilters} />
@@ -193,6 +295,15 @@ export function RepoGrid({ repos }: { repos: Repo[] }) {
         onConfirm={handleDeleteConfirm}
         onCancel={() => setDeleteTargets(null)}
         loading={isPending}
+      />
+      <BulkActionBar
+        count={selectedIds.size}
+        onMakePublic={bulkMakePublic}
+        onMakePrivate={bulkMakePrivate}
+        onArchive={bulkArchive}
+        onUnarchive={bulkUnarchive}
+        onDelete={bulkDelete}
+        onClear={() => setSelectedIds(new Set())}
       />
     </>
   )
