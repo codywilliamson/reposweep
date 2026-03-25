@@ -67,10 +67,10 @@ export function FilterBar({ filters, languages, onChange }: FilterBarProps) {
 
         {/* language dropdown */}
         <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="outline" size="sm">
-              {filters.language ?? "All languages"}
-            </Button>
+          <DropdownMenuTrigger
+            render={<Button variant="outline" size="sm" />}
+          >
+            {filters.language ?? "All languages"}
           </DropdownMenuTrigger>
           <DropdownMenuContent>
             <DropdownMenuItem onClick={() => update({ language: null })}>
@@ -86,11 +86,11 @@ export function FilterBar({ filters, languages, onChange }: FilterBarProps) {
 
         {/* sort dropdown */}
         <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="outline" size="sm">
-              Sort: {SORT_OPTIONS.find((o) => o.field === filters.sortField)?.label}
-              {filters.sortDirection === "asc" ? " ↑" : " ↓"}
-            </Button>
+          <DropdownMenuTrigger
+            render={<Button variant="outline" size="sm" />}
+          >
+            Sort: {SORT_OPTIONS.find((o) => o.field === filters.sortField)?.label}
+            {filters.sortDirection === "asc" ? " ↑" : " ↓"}
           </DropdownMenuTrigger>
           <DropdownMenuContent>
             {SORT_OPTIONS.map((opt) => (
