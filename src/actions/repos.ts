@@ -2,34 +2,66 @@
 
 import { revalidatePath } from "next/cache"
 import { getOctokit } from "@/lib/github"
+import { RequestError } from "octokit"
+
+function handleError(e: unknown): never {
+  if (e instanceof RequestError && e.status === 403) {
+    const resetHeader = e.response?.headers?.["x-ratelimit-reset"]
+    if (resetHeader) {
+      const resetTime = new Date(Number(resetHeader) * 1000)
+      throw new Error(`Rate limited. Resets at ${resetTime.toLocaleTimeString()}`)
+    }
+  }
+  throw e
+}
 
 export async function toggleVisibility(owner: string, repo: string, makePrivate: boolean) {
   const octokit = await getOctokit()
-  await octokit.rest.repos.update({ owner, repo, private: makePrivate })
+  try {
+    await octokit.rest.repos.update({ owner, repo, private: makePrivate })
+  } catch (e) {
+    handleError(e)
+  }
   revalidatePath("/dashboard")
 }
 
 export async function deleteRepo(owner: string, repo: string) {
   const octokit = await getOctokit()
-  await octokit.rest.repos.delete({ owner, repo })
+  try {
+    await octokit.rest.repos.delete({ owner, repo })
+  } catch (e) {
+    handleError(e)
+  }
   revalidatePath("/dashboard")
 }
 
 export async function renameRepo(owner: string, repo: string, newName: string) {
   const octokit = await getOctokit()
-  await octokit.rest.repos.update({ owner, repo, name: newName })
+  try {
+    await octokit.rest.repos.update({ owner, repo, name: newName })
+  } catch (e) {
+    handleError(e)
+  }
   revalidatePath("/dashboard")
 }
 
 export async function updateDescription(owner: string, repo: string, description: string) {
   const octokit = await getOctokit()
-  await octokit.rest.repos.update({ owner, repo, description })
+  try {
+    await octokit.rest.repos.update({ owner, repo, description })
+  } catch (e) {
+    handleError(e)
+  }
   revalidatePath("/dashboard")
 }
 
 export async function toggleArchive(owner: string, repo: string, archive: boolean) {
   const octokit = await getOctokit()
-  await octokit.rest.repos.update({ owner, repo, archived: archive })
+  try {
+    await octokit.rest.repos.update({ owner, repo, archived: archive })
+  } catch (e) {
+    handleError(e)
+  }
   revalidatePath("/dashboard")
 }
 
@@ -67,7 +99,17 @@ export async function bulkAction(
       }
       results.push({ repo, success: true })
     } catch (e) {
-      results.push({ repo, success: false, error: e instanceof Error ? e.message : "Unknown error" })
+      let errorMsg = "Unknown error"
+      if (e instanceof RequestError && e.status === 403) {
+        const resetHeader = e.response?.headers?.["x-ratelimit-reset"]
+        if (resetHeader) {
+          const resetTime = new Date(Number(resetHeader) * 1000)
+          errorMsg = `Rate limited. Resets at ${resetTime.toLocaleTimeString()}`
+        }
+      } else if (e instanceof Error) {
+        errorMsg = e.message
+      }
+      results.push({ repo, success: false, error: errorMsg })
     }
   }
 

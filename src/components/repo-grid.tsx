@@ -1,7 +1,8 @@
 "use client"
 
-import { useState, useMemo, useTransition } from "react"
-import { AnimatePresence } from "framer-motion"
+import { useState, useMemo, useTransition, useEffect } from "react"
+import { AnimatePresence, LayoutGroup, motion } from "framer-motion"
+import { Button } from "@/components/ui/button"
 import { toast } from "sonner"
 import type { Repo, FilterState } from "@/lib/types"
 import { FilterBar } from "@/components/filter-bar"
@@ -48,6 +49,26 @@ export function RepoGrid({ repos }: { repos: Repo[] }) {
   const toggleExpand = (id: number) => {
     setExpandedId((prev) => (prev === id ? null : id))
   }
+
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        if (expandedId !== null) {
+          setExpandedId(null)
+        } else if (selectedIds.size > 0) {
+          setSelectedIds(new Set())
+        }
+      }
+      if ((e.ctrlKey || e.metaKey) && e.key === "a") {
+        const target = e.target as HTMLElement
+        if (target.tagName === "INPUT" || target.tagName === "TEXTAREA") return
+        e.preventDefault()
+        setSelectedIds(new Set(filtered.map((r) => r.id)))
+      }
+    }
+    window.addEventListener("keydown", handler)
+    return () => window.removeEventListener("keydown", handler)
+  }, [expandedId, selectedIds.size, filtered])
 
   const requestVisibilityChange = (repo: Repo) => {
     const action = repo.private ? "public" : "private"
@@ -256,29 +277,43 @@ export function RepoGrid({ repos }: { repos: Repo[] }) {
   return (
     <>
       <FilterBar filters={filters} languages={languages} onChange={setFilters} />
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        <AnimatePresence>
-          {filtered.map((repo, i) => (
-            <RepoCard
-              key={repo.id}
-              repo={repo}
-              selected={selectedIds.has(repo.id)}
-              expanded={expandedId === repo.id}
-              onToggleSelect={() => toggleSelect(repo.id)}
-              onToggleExpand={() => toggleExpand(repo.id)}
-              onRequestVisibilityChange={() => requestVisibilityChange(repo)}
-              onRequestArchiveChange={() => requestArchiveChange(repo)}
-              onRequestDelete={() => requestDelete(repo)}
-              index={i}
-            />
-          ))}
-        </AnimatePresence>
-        {filtered.length === 0 && (
-          <p className="col-span-full text-center text-muted-foreground py-12">
-            No repos match your filters
-          </p>
-        )}
-      </div>
+      <LayoutGroup>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <AnimatePresence>
+            {filtered.map((repo, i) => (
+              <RepoCard
+                key={repo.id}
+                repo={repo}
+                selected={selectedIds.has(repo.id)}
+                expanded={expandedId === repo.id}
+                onToggleSelect={() => toggleSelect(repo.id)}
+                onToggleExpand={() => toggleExpand(repo.id)}
+                onRequestVisibilityChange={() => requestVisibilityChange(repo)}
+                onRequestArchiveChange={() => requestArchiveChange(repo)}
+                onRequestDelete={() => requestDelete(repo)}
+                index={i}
+              />
+            ))}
+          </AnimatePresence>
+          {filtered.length === 0 && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="col-span-full flex flex-col items-center justify-center py-16 text-center"
+            >
+              <p className="text-lg text-muted-foreground">No repos match your filters</p>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="mt-3"
+                onClick={() => setFilters(defaultFilters)}
+              >
+                Clear filters
+              </Button>
+            </motion.div>
+          )}
+        </div>
+      </LayoutGroup>
       <ConfirmModal
         open={confirmModal !== null}
         title={confirmModal?.title ?? ""}
