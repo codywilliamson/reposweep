@@ -50,26 +50,6 @@ export function RepoGrid({ repos }: { repos: Repo[] }) {
     setExpandedId((prev) => (prev === id ? null : id))
   }
 
-  useEffect(() => {
-    const handler = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
-        if (expandedId !== null) {
-          setExpandedId(null)
-        } else if (selectedIds.size > 0) {
-          setSelectedIds(new Set())
-        }
-      }
-      if ((e.ctrlKey || e.metaKey) && e.key === "a") {
-        const target = e.target as HTMLElement
-        if (target.tagName === "INPUT" || target.tagName === "TEXTAREA") return
-        e.preventDefault()
-        setSelectedIds(new Set(filtered.map((r) => r.id)))
-      }
-    }
-    window.addEventListener("keydown", handler)
-    return () => window.removeEventListener("keydown", handler)
-  }, [expandedId, selectedIds.size, filtered])
-
   const requestVisibilityChange = (repo: Repo) => {
     const action = repo.private ? "public" : "private"
     setConfirmModal({
@@ -172,6 +152,26 @@ export function RepoGrid({ repos }: { repos: Repo[] }) {
 
     return result
   }, [repos, filters])
+
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        if (expandedId !== null) {
+          setExpandedId(null)
+        } else if (selectedIds.size > 0) {
+          setSelectedIds(new Set())
+        }
+      }
+      if ((e.ctrlKey || e.metaKey) && e.key === "a") {
+        const target = e.target as HTMLElement
+        if (target.tagName === "INPUT" || target.tagName === "TEXTAREA") return
+        e.preventDefault()
+        setSelectedIds(new Set(filtered.map((r) => r.id)))
+      }
+    }
+    window.addEventListener("keydown", handler)
+    return () => window.removeEventListener("keydown", handler)
+  }, [expandedId, selectedIds.size, filtered])
 
   const selectedRepos = useMemo(
     () => filtered.filter((r) => selectedIds.has(r.id)),
