@@ -23,11 +23,11 @@ export function RepoCardExpanded({ repo, onRequestVisibilityChange, onRequestArc
   const saveName = () => {
     if (name === repo.name || !name.trim()) return
     startTransition(async () => {
-      try {
-        await renameRepo(repo.owner.login, repo.name, name)
+      const result = await renameRepo(repo.owner.login, repo.name, name)
+      if (result.success) {
         toast.success(`Renamed to ${name}`)
-      } catch {
-        toast.error("Failed to rename")
+      } else {
+        toast.error(result.rateLimited ? `Rate limited — try again later` : "Failed to rename")
         setName(repo.name)
       }
     })
@@ -36,11 +36,11 @@ export function RepoCardExpanded({ repo, onRequestVisibilityChange, onRequestArc
   const saveDescription = () => {
     if (description === (repo.description ?? "")) return
     startTransition(async () => {
-      try {
-        await updateDescription(repo.owner.login, repo.name, description)
+      const result = await updateDescription(repo.owner.login, repo.name, description)
+      if (result.success) {
         toast.success("Description updated")
-      } catch {
-        toast.error("Failed to update description")
+      } else {
+        toast.error(result.rateLimited ? `Rate limited — try again later` : "Failed to update description")
         setDescription(repo.description ?? "")
       }
     })

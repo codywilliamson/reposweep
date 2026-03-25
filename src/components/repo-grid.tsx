@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useMemo, useTransition, useEffect } from "react"
+import { useState, useMemo, useEffect } from "react"
 import { AnimatePresence, LayoutGroup, motion } from "framer-motion"
 import { Button } from "@/components/ui/button"
 import { toast } from "sonner"
@@ -10,7 +10,10 @@ import { RepoCard } from "@/components/repo-card"
 import { ConfirmModal } from "@/components/confirm-modal"
 import { DeleteModal } from "@/components/delete-modal"
 import { BulkActionBar } from "@/components/bulk-action-bar"
-import { toggleVisibility, toggleArchive, deleteRepo, bulkAction } from "@/actions/repos"
+import { RateLimitBanner } from "@/components/rate-limit-banner"
+import { QueueStatus } from "@/components/queue-status"
+import { useOperationQueue } from "@/lib/use-operation-queue"
+import { toggleVisibility, toggleArchive, deleteRepo } from "@/actions/repos"
 
 const defaultFilters: FilterState = {
   search: "",
@@ -25,7 +28,6 @@ export function RepoGrid({ repos }: { repos: Repo[] }) {
   const [filters, setFilters] = useState<FilterState>(defaultFilters)
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set())
   const [expandedId, setExpandedId] = useState<number | null>(null)
-  const [isPending, startTransition] = useTransition()
 
   const [confirmModal, setConfirmModal] = useState<{
     title: string
@@ -36,6 +38,15 @@ export function RepoGrid({ repos }: { repos: Repo[] }) {
   } | null>(null)
 
   const [deleteTargets, setDeleteTargets] = useState<Repo[] | null>(null)
+
+  const {
+    queue,
+    enqueue,
+    clearQueue,
+    clearCompleted,
+    rateLimitResetsAt,
+    pendingCount,
+  } = useOperationQueue()
 
   const toggleSelect = (id: number) => {
     setSelectedIds((prev) => {
@@ -50,6 +61,7 @@ export function RepoGrid({ repos }: { repos: Repo[] }) {
     setExpandedId((prev) => (prev === id ? null : id))
   }
 
+  // single repo actions — queue them
   const requestVisibilityChange = (repo: Repo) => {
     const action = repo.private ? "public" : "private"
     setConfirmModal({
@@ -60,15 +72,13 @@ export function RepoGrid({ repos }: { repos: Repo[] }) {
       repos: [repo.name],
       confirmLabel: repo.private ? "Make Public" : "Make Private",
       onConfirm: () => {
-        startTransition(async () => {
-          try {
-            await toggleVisibility(repo.owner.login, repo.name, !repo.private)
-            toast.success(`${repo.name} is now ${action}`)
-          } catch {
-            toast.error(`Failed to make ${repo.name} ${action}`)
-          }
-          setConfirmModal(null)
-        })
+        enqueue([{
+          id: `vis-${repo.name}-${Date.now()}`,
+          label: `${repo.name} → ${action}`,
+          execute: () => toggleVisibility(repo.owner.login, repo.name, !repo.private),
+        }])
+        setConfirmModal(null)
+        toast.success(`Queued: make ${repo.name} ${action}`)
       },
     })
   }
@@ -83,15 +93,13 @@ export function RepoGrid({ repos }: { repos: Repo[] }) {
       repos: [repo.name],
       confirmLabel: repo.archived ? "Unarchive" : "Archive",
       onConfirm: () => {
-        startTransition(async () => {
-          try {
-            await toggleArchive(repo.owner.login, repo.name, !repo.archived)
-            toast.success(`${repo.name} ${action}d`)
-          } catch {
-            toast.error(`Failed to ${action} ${repo.name}`)
-          }
-          setConfirmModal(null)
-        })
+        enqueue([{
+          id: `arch-${repo.name}-${Date.now()}`,
+          label: `${action} ${repo.name}`,
+          execute: () => toggleArchive(repo.owner.login, repo.name, !repo.archived),
+        }])
+        setConfirmModal(null)
+        toast.success(`Queued: ${action} ${repo.name}`)
       },
     })
   }
@@ -102,18 +110,16 @@ export function RepoGrid({ repos }: { repos: Repo[] }) {
 
   const handleDeleteConfirm = () => {
     if (!deleteTargets) return
-    startTransition(async () => {
-      for (const repo of deleteTargets) {
-        try {
-          await deleteRepo(repo.owner.login, repo.name)
-          toast.success(`Deleted ${repo.name}`)
-        } catch {
-          toast.error(`Failed to delete ${repo.name}`)
-        }
-      }
-      setDeleteTargets(null)
-      setSelectedIds(new Set())
-    })
+    enqueue(
+      deleteTargets.map((repo) => ({
+        id: `del-${repo.name}-${Date.now()}`,
+        label: `delete ${repo.name}`,
+        execute: () => deleteRepo(repo.owner.login, repo.name),
+      }))
+    )
+    toast.success(`Queued: delete ${deleteTargets.length} repo${deleteTargets.length > 1 ? "s" : ""}`)
+    setDeleteTargets(null)
+    setSelectedIds(new Set())
   }
 
   const languages = useMemo(
@@ -178,6 +184,7 @@ export function RepoGrid({ repos }: { repos: Repo[] }) {
     [filtered, selectedIds]
   )
 
+  // bulk actions — all go through the queue
   const bulkMakePublic = () => {
     setConfirmModal({
       title: `Make ${selectedRepos.length} repos public?`,
@@ -185,18 +192,16 @@ export function RepoGrid({ repos }: { repos: Repo[] }) {
       repos: selectedRepos.map((r) => r.name),
       confirmLabel: "Make Public",
       onConfirm: () => {
-        startTransition(async () => {
-          const results = await bulkAction(
-            selectedRepos.map((r) => ({ owner: r.owner.login, repo: r.name })),
-            "make_public"
-          )
-          const succeeded = results.filter((r) => r.success).length
-          const failed = results.filter((r) => !r.success).length
-          if (failed === 0) toast.success(`${succeeded} repos made public`)
-          else toast.error(`${succeeded}/${results.length} succeeded, ${failed} failed`)
-          setConfirmModal(null)
-          setSelectedIds(new Set())
-        })
+        enqueue(
+          selectedRepos.map((r) => ({
+            id: `vis-${r.name}-${Date.now()}`,
+            label: `${r.name} → public`,
+            execute: () => toggleVisibility(r.owner.login, r.name, false),
+          }))
+        )
+        toast.success(`Queued: make ${selectedRepos.length} repos public`)
+        setConfirmModal(null)
+        setSelectedIds(new Set())
       },
     })
   }
@@ -208,18 +213,16 @@ export function RepoGrid({ repos }: { repos: Repo[] }) {
       repos: selectedRepos.map((r) => r.name),
       confirmLabel: "Make Private",
       onConfirm: () => {
-        startTransition(async () => {
-          const results = await bulkAction(
-            selectedRepos.map((r) => ({ owner: r.owner.login, repo: r.name })),
-            "make_private"
-          )
-          const succeeded = results.filter((r) => r.success).length
-          const failed = results.filter((r) => !r.success).length
-          if (failed === 0) toast.success(`${succeeded} repos made private`)
-          else toast.error(`${succeeded}/${results.length} succeeded, ${failed} failed`)
-          setConfirmModal(null)
-          setSelectedIds(new Set())
-        })
+        enqueue(
+          selectedRepos.map((r) => ({
+            id: `vis-${r.name}-${Date.now()}`,
+            label: `${r.name} → private`,
+            execute: () => toggleVisibility(r.owner.login, r.name, true),
+          }))
+        )
+        toast.success(`Queued: make ${selectedRepos.length} repos private`)
+        setConfirmModal(null)
+        setSelectedIds(new Set())
       },
     })
   }
@@ -231,18 +234,16 @@ export function RepoGrid({ repos }: { repos: Repo[] }) {
       repos: selectedRepos.map((r) => r.name),
       confirmLabel: "Archive",
       onConfirm: () => {
-        startTransition(async () => {
-          const results = await bulkAction(
-            selectedRepos.map((r) => ({ owner: r.owner.login, repo: r.name })),
-            "archive"
-          )
-          const succeeded = results.filter((r) => r.success).length
-          const failed = results.filter((r) => !r.success).length
-          if (failed === 0) toast.success(`${succeeded} repos archived`)
-          else toast.error(`${succeeded}/${results.length} succeeded, ${failed} failed`)
-          setConfirmModal(null)
-          setSelectedIds(new Set())
-        })
+        enqueue(
+          selectedRepos.map((r) => ({
+            id: `arch-${r.name}-${Date.now()}`,
+            label: `archive ${r.name}`,
+            execute: () => toggleArchive(r.owner.login, r.name, true),
+          }))
+        )
+        toast.success(`Queued: archive ${selectedRepos.length} repos`)
+        setConfirmModal(null)
+        setSelectedIds(new Set())
       },
     })
   }
@@ -254,18 +255,16 @@ export function RepoGrid({ repos }: { repos: Repo[] }) {
       repos: selectedRepos.map((r) => r.name),
       confirmLabel: "Unarchive",
       onConfirm: () => {
-        startTransition(async () => {
-          const results = await bulkAction(
-            selectedRepos.map((r) => ({ owner: r.owner.login, repo: r.name })),
-            "unarchive"
-          )
-          const succeeded = results.filter((r) => r.success).length
-          const failed = results.filter((r) => !r.success).length
-          if (failed === 0) toast.success(`${succeeded} repos unarchived`)
-          else toast.error(`${succeeded}/${results.length} succeeded, ${failed} failed`)
-          setConfirmModal(null)
-          setSelectedIds(new Set())
-        })
+        enqueue(
+          selectedRepos.map((r) => ({
+            id: `arch-${r.name}-${Date.now()}`,
+            label: `unarchive ${r.name}`,
+            execute: () => toggleArchive(r.owner.login, r.name, false),
+          }))
+        )
+        toast.success(`Queued: unarchive ${selectedRepos.length} repos`)
+        setConfirmModal(null)
+        setSelectedIds(new Set())
       },
     })
   }
@@ -276,6 +275,7 @@ export function RepoGrid({ repos }: { repos: Repo[] }) {
 
   return (
     <>
+      <RateLimitBanner resetsAt={rateLimitResetsAt} pendingCount={pendingCount} />
       <FilterBar filters={filters} languages={languages} onChange={setFilters} />
       <LayoutGroup>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -322,14 +322,17 @@ export function RepoGrid({ repos }: { repos: Repo[] }) {
         confirmLabel={confirmModal?.confirmLabel ?? ""}
         onConfirm={confirmModal?.onConfirm ?? (() => {})}
         onCancel={() => setConfirmModal(null)}
-        loading={isPending}
       />
       <DeleteModal
         open={deleteTargets !== null}
         repos={deleteTargets?.map((r) => r.name) ?? []}
         onConfirm={handleDeleteConfirm}
         onCancel={() => setDeleteTargets(null)}
-        loading={isPending}
+      />
+      <QueueStatus
+        queue={queue}
+        onClear={clearQueue}
+        onClearCompleted={clearCompleted}
       />
       <BulkActionBar
         count={selectedIds.size}
