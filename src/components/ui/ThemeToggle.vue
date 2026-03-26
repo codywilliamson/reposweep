@@ -7,6 +7,9 @@ const themes = [
   { id: "nord", label: "Nord" },
   { id: "tokyo-night", label: "Tokyo Night" },
   { id: "catppuccin", label: "Catppuccin" },
+  { id: "gruvbox", label: "Gruvbox" },
+  { id: "one-dark", label: "One Dark" },
+  { id: "solarized", label: "Solarized" },
 ] as const;
 
 const current = ref("dark");
@@ -43,7 +46,7 @@ const currentLabel = () => themes.find((t) => t.id === current.value)?.label ?? 
     <Transition name="dropdown">
       <div
         v-if="open"
-        class="absolute right-0 top-full mt-2 w-44 rounded-lg border border-border-default bg-bg-secondary p-1 shadow-lg"
+        class="absolute right-0 top-full mt-2 max-h-80 w-44 overflow-y-auto rounded-lg border border-border-default bg-bg-secondary p-1 shadow-lg"
       >
         <button
           v-for="theme in themes"
