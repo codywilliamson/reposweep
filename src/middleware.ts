@@ -1,11 +1,16 @@
-import { auth } from "@/lib/auth"
+import { defineMiddleware } from "astro:middleware";
+import { getSessionFromCookies } from "./lib/auth";
 
-export default auth((req) => {
-  if (!req.auth && req.nextUrl.pathname.startsWith("/dashboard")) {
-    return Response.redirect(new URL("/", req.url))
+const PROTECTED = ["/dashboard"];
+
+export const onRequest = defineMiddleware((ctx, next) => {
+  const isProtected = PROTECTED.some((p) => ctx.url.pathname.startsWith(p));
+
+  if (isProtected) {
+    const session = getSessionFromCookies(ctx.cookies);
+    if (!session) return ctx.redirect("/");
+    ctx.locals.session = session;
   }
-})
 
-export const config = {
-  matcher: ["/dashboard/:path*"],
-}
+  return next();
+});

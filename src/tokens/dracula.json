@@ -1,0 +1,29 @@
+{
+  "color": {
+    "bg": {
+      "primary": { "value": "#282a36" },
+      "secondary": { "value": "#2d2f3d" },
+      "tertiary": { "value": "#343746" }
+    },
+    "fg": {
+      "primary": { "value": "#f8f8f2" },
+      "secondary": { "value": "#e2e0dc" },
+      "muted": { "value": "#6272a4" }
+    },
+    "accent": {
+      "purple": { "value": "#bd93f9" },
+      "pink": { "value": "#ff79c6" },
+      "green": { "value": "#50fa7b" },
+      "cyan": { "value": "#8be9fd" },
+      "orange": { "value": "#ffb86c" },
+      "red": { "value": "#ff5555" },
+      "yellow": { "value": "#f1fa8c" }
+    },
+    "border": {
+      "default": { "value": "#44475a" },
+      "muted": { "value": "#383a4a" }
+    },
+    "selection": { "value": "#44475a" },
+    "current-line": { "value": "#44475a" }
+  }
+}

@@ -1,0 +1,41 @@
+---
+import Header from "@/components/layout/Header.astro";
+import Footer from "@/components/layout/Footer.astro";
+import "@/styles/global.css";
+
+interface Props {
+  title?: string;
+}
+
+const { title = "RepoSweep" } = Astro.props;
+const session = Astro.locals.session;
+---
+
+<!doctype html>
+<html lang="en" data-theme="dark">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title} | RepoSweep</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  </head>
+  <body class="min-h-dvh flex flex-col bg-bg-primary text-fg-primary">
+    <script is:inline>
+      // prevent flash — read theme before paint
+      (function () {
+        const t = localStorage.getItem("theme");
+        if (t) document.documentElement.setAttribute("data-theme", t);
+        else if (window.matchMedia("(prefers-color-scheme: light)").matches)
+          document.documentElement.setAttribute("data-theme", "light");
+      })();
+    </script>
+    <Header session={session} />
+    <main class="flex-1">
+      <slot />
+    </main>
+    <Footer />
+  </body>
+</html>
