@@ -149,12 +149,12 @@ async function handleDelete(repo: Repo) {
   deleteModal.value = {
     repos: [repo.name],
     action: async () => {
+      deleteModal.value = null;
       await runOperation(`Deleting: ${repo.name}`, async () => {
         await apiCall("delete", { owner: repo.owner.login, repo: repo.name });
         allRepos.value = allRepos.value.filter((r) => r.id !== repo.id);
         selected.value.delete(repo.id);
       });
-      deleteModal.value = null;
     },
   };
 }
@@ -196,9 +196,9 @@ async function bulkAction(title: string, description: string, action: (repos: Re
     description,
     repos: repos.map((r) => r.name),
     action: async () => {
-      await action(repos);
       confirmModal.value = null;
       clearSelection();
+      await action(repos);
     },
   };
 }
@@ -254,14 +254,14 @@ function bulkDelete() {
   deleteModal.value = {
     repos: repos.map((r) => r.name),
     action: async () => {
+      deleteModal.value = null;
+      clearSelection();
       for (const r of repos) {
         await runOperation(`Deleting: ${r.name}`, () =>
           apiCall("delete", { owner: r.owner.login, repo: r.name }),
         );
         allRepos.value = allRepos.value.filter((repo) => repo.id !== r.id);
       }
-      deleteModal.value = null;
-      clearSelection();
     },
   };
 }
