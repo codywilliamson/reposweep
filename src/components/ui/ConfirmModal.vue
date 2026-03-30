@@ -14,8 +14,8 @@ defineEmits<{
 <template>
   <Teleport to="body">
     <div class="fixed inset-0 z-50 flex items-center justify-center p-4" @click.self="$emit('cancel')">
-      <div class="fixed inset-0 bg-black/50 backdrop-blur-sm" />
-      <div class="glass relative w-full max-w-md rounded-2xl p-6 shadow-xl">
+      <div class="modal-backdrop fixed inset-0 bg-black/50 backdrop-blur-sm" />
+      <div class="modal-card glass relative w-full max-w-md rounded-2xl p-6 shadow-xl">
         <h2 class="text-lg font-semibold text-fg-primary">{{ title }}</h2>
         <p class="mt-2 text-sm text-fg-muted">{{ description }}</p>
 
@@ -45,3 +45,21 @@ defineEmits<{
     </div>
   </Teleport>
 </template>
+
+<style scoped>
+.modal-backdrop {
+  animation: modal-fade 0.15s ease both;
+}
+.modal-card {
+  animation: modal-enter 0.2s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+@keyframes modal-fade {
+  from { opacity: 0; }
+}
+@keyframes modal-enter {
+  from { opacity: 0; transform: scale(0.96) translateY(0.5rem); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .modal-backdrop, .modal-card { animation: none; }
+}
+</style>

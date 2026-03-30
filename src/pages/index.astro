@@ -10,57 +10,57 @@ const highlights = [
   {
     eyebrow: "New",
     title: "Commit insights that feel alive",
-    description: "Track repo velocity, weekly trendlines, repo spread, and commit concentration without leaving the app.",
+    description: "Track velocity, weekly trendlines, repo-level spread, and commit concentration — all inside the app, no external tooling.",
   },
   {
     eyebrow: "Safer auth",
     title: "KV-backed sessions on Workers",
-    description: "GitHub tokens stay off the browser cookie payload and the app plays nicely with the Cloudflare runtime.",
+    description: "GitHub tokens stay off the cookie payload. Sessions live in Cloudflare KV. Auth designed for the Workers runtime, not bolted on.",
   },
   {
     eyebrow: "Built for volume",
     title: "Made for agent-heavy GitHub accounts",
-    description: "Bulk repo actions, fast filtering, and high-signal analytics for people shipping across too many repos to count.",
+    description: "Bulk actions, fast filtering, and high-signal analytics for people shipping across too many repos to count.",
   },
 ];
 
 const featureCards = [
   {
     title: "Bulk Repo Ops",
-    description: "Visibility changes, archiving, delete flows, rename, and description edits from one place.",
+    description: "Visibility, archiving, deletion, rename, and description edits — all from one surface.",
     icon: `<path d="M4 6h16"/><path d="M4 12h10"/><path d="M4 18h7"/><path d="M17 10l3 3-3 3"/>`,
   },
   {
     title: "Commit Analytics",
-    description: "Totals, recent velocity, weekly charts, and repo-level spread tuned for real active windows.",
+    description: "Totals, velocity, weekly charts, and repo spread tuned for real active windows.",
     icon: `<path d="M3 3v18h18"/><path d="m7 13 4-4 3 3 5-7"/>`,
   },
   {
     title: "Server-Side Filters",
-    description: "Search repos, narrow by visibility, window, archive state, repo coverage, and sort mode.",
+    description: "Search, visibility, window, archive state, coverage, and sort — all server-rendered.",
     icon: `<polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>`,
   },
   {
     title: "Coverage-Aware Insights",
-    description: "The page tells you how many repos were matched and analyzed, so the numbers have context.",
+    description: "Know exactly how many repos were matched and analyzed. The numbers always have context.",
     icon: `<path d="M12 20s8-4 8-10V4l-8-2-8 2v6c0 6 8 10 8 10Z"/><path d="m9 12 2 2 4-4"/>`,
   },
   {
     title: "Cloudflare-Friendly",
-    description: "Built for Workers SSR with practical runtime choices instead of pretending Node semantics exist.",
+    description: "Workers SSR with practical runtime choices. No pretending Node semantics exist on the edge.",
     icon: `<path d="M13 2 3 14h8l-1 8 11-14h-8l1-6Z"/>`,
   },
   {
     title: "Queue + Control",
-    description: "Live operation feedback keeps destructive or long-running repo changes understandable.",
+    description: "Live operation feedback for destructive or long-running changes. Nothing feels like a black box.",
     icon: `<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 8h10"/><path d="M7 12h6"/><path d="M7 16h8"/>`,
   },
 ];
 
 const stats = [
-  { label: "One dashboard for cleanup", value: "Bulk-safe repo controls" },
+  { label: "One dashboard for cleanup", value: "Bulk-safe repo management" },
   { label: "One dashboard for signal", value: "Velocity, trendlines, spread" },
-  { label: "One dashboard for trust", value: "KV-backed sessions on CF" },
+  { label: "One dashboard for trust", value: "KV-backed sessions on Cloudflare" },
 ];
 ---
 
@@ -74,27 +74,26 @@ const stats = [
 
     <div class="relative mx-auto max-w-7xl px-4 pb-24 pt-10 sm:px-6">
       <section class="grid min-h-[calc(100dvh-10rem)] items-center gap-12 lg:grid-cols-[1.02fr_0.98fr]">
-        <div class="scroll-reveal">
-          <div class="mb-6 inline-flex items-center gap-2 rounded-full border border-accent-cyan/30 bg-accent-cyan/10 px-4 py-2 text-xs font-medium uppercase tracking-[0.24em] text-accent-cyan">
-            <span class="h-2 w-2 rounded-full bg-accent-cyan" />
+        <div>
+          <div class="animate-in mb-6 inline-flex items-center gap-2 rounded-full border border-accent-cyan/30 bg-accent-cyan/10 px-4 py-2 text-xs font-medium uppercase tracking-[0.24em] text-accent-cyan">
+            <span class="pulse-soft h-2 w-2 rounded-full bg-accent-cyan" />
             Repo Control + Commit Intelligence
           </div>
 
-          <h1 class="max-w-4xl text-5xl font-bold leading-[0.95] tracking-tight sm:text-6xl xl:text-7xl">
+          <h1 class="animate-in animate-in-delay-1 max-w-4xl text-5xl font-bold leading-[0.95] tracking-tight sm:text-6xl xl:text-7xl">
             Sweep the chaos,
-            <span class="gradient-text block pt-2">see where the code is actually moving.</span>
+            <span class="gradient-text-animated block pt-2">see where the code is actually moving.</span>
           </h1>
 
-          <p class="mt-6 max-w-2xl text-lg leading-8 text-fg-secondary sm:text-xl">
-            RepoSweep started as a fast way to clean up GitHub repos. Now it doubles as an operations deck for
-            high-churn accounts, with commit analytics, weekly trendlines, better filtering, and Cloudflare-native
-            session handling.
+          <p class="animate-in animate-in-delay-2 mt-6 max-w-2xl text-lg leading-8 text-fg-secondary sm:text-xl">
+            One dashboard to wrangle a sprawling GitHub account. Bulk cleanup for repos that should've been archived
+            months ago, and commit analytics that show you where the energy is actually going.
           </p>
 
-          <div class="mt-8 flex flex-col items-start gap-4 sm:flex-row sm:items-center">
+          <div class="animate-in animate-in-delay-3 mt-8 flex flex-col items-start gap-4 sm:flex-row sm:items-center">
             <a
               href="/api/auth/login"
-              class="inline-flex items-center gap-3 rounded-2xl bg-accent-purple px-7 py-3.5 text-base font-medium text-bg-primary transition-all hover:-translate-y-0.5 hover:opacity-90 hover:shadow-[0_18px_60px_-22px_var(--ss-accent-purple)]"
+              class="inline-flex items-center gap-3 rounded-2xl bg-accent-purple px-7 py-3.5 text-base font-medium text-bg-primary transition-all hover:-translate-y-0.5 hover:opacity-90 hover:shadow-[0_18px_60px_-22px_var(--ss-accent-purple)] active:translate-y-0"
             >
               <svg class="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
@@ -105,7 +104,7 @@ const stats = [
               href="https://github.com/codywilliamson/reposweep"
               target="_blank"
               rel="noopener"
-              class="inline-flex items-center gap-2 rounded-2xl border border-border-default bg-bg-secondary/70 px-7 py-3.5 text-base font-medium text-fg-secondary transition-colors hover:border-accent-purple hover:text-fg-primary"
+              class="inline-flex items-center gap-2 rounded-2xl border border-border-default bg-bg-secondary/70 px-7 py-3.5 text-base font-medium text-fg-secondary transition-all hover:border-accent-purple hover:text-fg-primary active:scale-[0.98]"
             >
               <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4"/>
@@ -115,19 +114,19 @@ const stats = [
             </a>
           </div>
 
-          <div class="mt-8 flex flex-wrap items-center gap-3 text-sm text-fg-muted">
+          <div class="animate-in animate-in-delay-4 mt-8 flex flex-wrap items-center gap-3 text-sm text-fg-muted">
             <span class="rounded-full bg-bg-secondary/70 px-3 py-1.5">Commit trendlines</span>
             <span class="rounded-full bg-bg-secondary/70 px-3 py-1.5">Repo spread + filters</span>
             <span class="rounded-full bg-bg-secondary/70 px-3 py-1.5">Workers-native sessions</span>
           </div>
 
-          <p class="mt-8 text-xs text-fg-muted">
+          <p class="animate-in animate-in-delay-5 mt-8 text-xs text-fg-muted">
             Requires <code class="rounded bg-bg-tertiary px-1.5 py-0.5 font-mono text-accent-cyan">repo</code> and
             <code class="ml-1 rounded bg-bg-tertiary px-1.5 py-0.5 font-mono text-accent-cyan">delete_repo</code> scopes
           </p>
         </div>
 
-        <div class="scroll-reveal">
+        <div class="animate-in animate-in-delay-2">
           <div class="relative mx-auto max-w-2xl">
             <div class="landing-chip landing-chip-top">
               <span class="text-xs uppercase tracking-[0.22em] text-accent-cyan">Insights</span>
@@ -146,7 +145,8 @@ const stats = [
                   <p class="text-xs uppercase tracking-[0.24em] text-fg-muted">Live Snapshot</p>
                   <p class="mt-1 text-lg font-semibold">Agent-heavy GitHub account</p>
                 </div>
-                <div class="rounded-full bg-accent-green/15 px-3 py-1 text-xs font-medium text-accent-green">
+                <div class="flex items-center gap-1.5 rounded-full bg-accent-green/15 px-3 py-1 text-xs font-medium text-accent-green">
+                  <span class="pulse-soft h-1.5 w-1.5 rounded-full bg-accent-green" />
                   synced
                 </div>
               </div>
@@ -170,8 +170,9 @@ const stats = [
                         <stop offset="100%" stop-color="var(--ss-accent-purple)" stop-opacity="0.02" />
                       </linearGradient>
                     </defs>
-                    <path d="M20 186 L20 170 L82 152 L144 160 L206 116 L268 126 L330 92 L392 58 L454 70 L500 44 L500 186 Z" fill="url(#hero-area)" />
+                    <path class="chart-area-fade" d="M20 186 L20 170 L82 152 L144 160 L206 116 L268 126 L330 92 L392 58 L454 70 L500 44 L500 186 Z" fill="url(#hero-area)" />
                     <polyline
+                      class="chart-draw"
                       points="20,170 82,152 144,160 206,116 268,126 330,92 392,58 454,70 500,44"
                       fill="none"
                       stroke="var(--ss-accent-purple)"
@@ -179,8 +180,8 @@ const stats = [
                       stroke-linecap="round"
                       stroke-linejoin="round"
                     />
-                    <circle cx="392" cy="58" r="7" fill="var(--ss-accent-cyan)" />
-                    <circle cx="500" cy="44" r="7" fill="var(--ss-accent-cyan)" />
+                    <circle class="chart-area-fade" cx="392" cy="58" r="7" fill="var(--ss-accent-cyan)" />
+                    <circle class="chart-area-fade" cx="500" cy="44" r="7" fill="var(--ss-accent-cyan)" />
                   </svg>
 
                   <div class="mt-2 flex items-center justify-between text-xs text-fg-muted">
@@ -198,14 +199,17 @@ const stats = [
                         { name: "reposweep", width: "86%" },
                         { name: "agent-runner", width: "62%" },
                         { name: "prompt-lab", width: "44%" },
-                      ].map((item) => (
+                      ].map((item, i) => (
                         <div>
                           <div class="mb-1 flex items-center justify-between text-sm">
                             <span>{item.name}</span>
                             <span class="text-fg-muted">{item.width}</span>
                           </div>
                           <div class="h-2 rounded-full bg-bg-secondary">
-                            <div class="h-full rounded-full bg-gradient-to-r from-accent-cyan to-accent-purple" style={`width:${item.width};`} />
+                            <div
+                              class="bar-fill h-full rounded-full bg-gradient-to-r from-accent-cyan to-accent-purple"
+                              style={`width:${item.width}; animation-delay: ${0.8 + i * 0.15}s;`}
+                            />
                           </div>
                         </div>
                       ))}
@@ -232,9 +236,9 @@ const stats = [
       </section>
 
       <section class="pb-10">
-        <div class="grid gap-4 md:grid-cols-3">
+        <div class="stagger grid gap-4 md:grid-cols-3">
           {stats.map((stat) => (
-            <div class="glass rounded-2xl px-5 py-5">
+            <div class="glass hover-lift rounded-2xl px-5 py-5">
               <p class="text-xs uppercase tracking-[0.22em] text-fg-muted">{stat.label}</p>
               <p class="mt-3 text-xl font-semibold text-fg-primary">{stat.value}</p>
             </div>
@@ -243,18 +247,18 @@ const stats = [
       </section>
 
       <section class="pb-10 pt-12">
-        <div class="max-w-2xl">
+        <div class="scroll-reveal max-w-2xl">
           <p class="text-sm uppercase tracking-[0.24em] text-accent-cyan">What Changed</p>
-          <h2 class="mt-3 text-3xl font-bold sm:text-4xl">It is not just a cleanup tool anymore.</h2>
+          <h2 class="mt-3 text-3xl font-bold sm:text-4xl">It started as cleanup. Now it's an operations deck.</h2>
           <p class="mt-4 text-lg text-fg-secondary">
-            RepoSweep now helps you understand where commits are landing, which repos are absorbing the most energy,
-            and how your GitHub output is shifting over time, especially when agents start touching everything.
+            See where commits are landing, which repos are absorbing the most energy, and how your output shifts
+            over time — especially once agents start touching everything.
           </p>
         </div>
 
         <div class="stagger mt-10 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
           {highlights.map((item) => (
-            <div class="glass rounded-2xl p-6">
+            <div class="glass hover-lift rounded-2xl p-6">
               <p class="text-xs uppercase tracking-[0.24em] text-accent-cyan">{item.eyebrow}</p>
               <h3 class="mt-3 text-xl font-semibold">{item.title}</h3>
               <p class="mt-3 text-sm leading-7 text-fg-secondary">{item.description}</p>
@@ -263,21 +267,21 @@ const stats = [
         </div>
       </section>
 
-      <section class="pb-24 pt-12">
+      <section class="pb-12 pt-12">
         <div class="mb-12 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-          <div class="max-w-2xl">
+          <div class="scroll-reveal max-w-2xl">
             <p class="text-sm uppercase tracking-[0.24em] text-accent-cyan">Feature Set</p>
-            <h2 class="mt-3 text-3xl font-bold sm:text-4xl">Everything you need when your GitHub account gets loud.</h2>
+            <h2 class="mt-3 text-3xl font-bold sm:text-4xl">Everything in the box when your GitHub gets loud.</h2>
           </div>
-          <p class="max-w-xl text-sm leading-7 text-fg-muted">
-            The operational controls stay fast, but now they are paired with analytics and context so you can decide
-            what to change, not just click the change faster.
+          <p class="scroll-reveal max-w-xl text-sm leading-7 text-fg-muted">
+            Fast operational controls paired with analytics and context — so you can decide what to change,
+            not just click the change faster.
           </p>
         </div>
 
         <div class="stagger grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {featureCards.map((feature) => (
-            <div class="glass rounded-2xl p-6">
+            <div class="glass hover-lift rounded-2xl p-6">
               <div class="mb-4 flex h-11 w-11 items-center justify-center rounded-xl bg-accent-purple/15">
                 <svg class="h-5 w-5 text-accent-purple" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <Fragment set:html={feature.icon} />
@@ -288,6 +292,22 @@ const stats = [
             </div>
           ))}
         </div>
+      </section>
+
+      <section class="scroll-reveal pb-24 pt-12 text-center">
+        <h2 class="text-3xl font-bold sm:text-4xl">Ready to get your repos under control?</h2>
+        <p class="mx-auto mt-4 max-w-lg text-lg text-fg-secondary">
+          Connect your GitHub, see what you're working with, and start cleaning up in under a minute.
+        </p>
+        <a
+          href="/api/auth/login"
+          class="mt-8 inline-flex items-center gap-3 rounded-2xl bg-accent-purple px-7 py-3.5 text-base font-medium text-bg-primary transition-all hover:-translate-y-0.5 hover:opacity-90 hover:shadow-[0_18px_60px_-22px_var(--ss-accent-purple)] active:translate-y-0"
+        >
+          <svg class="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+          </svg>
+          Get started
+        </a>
       </section>
     </div>
   </div>

@@ -247,8 +247,17 @@ body {
 
 @media (prefers-reduced-motion: reduce) {
   .scroll-reveal,
-  .stagger > * {
-    animation: none;
+  .stagger > *,
+  .animate-in,
+  .gradient-text-animated,
+  .chart-draw,
+  .chart-area-fade,
+  .bar-fill,
+  .pulse-soft {
+    animation: none !important;
+  }
+  .hover-lift {
+    transition: none !important;
   }
 }
 
@@ -257,6 +266,7 @@ body {
   background: color-mix(in srgb, var(--ss-bg-secondary) 80%, transparent);
   backdrop-filter: blur(12px);
   border: 1px solid var(--ss-border-default);
+  transition: border-color 0.25s ease, box-shadow 0.25s ease;
 }
 
 /* ── gradient text ── */
@@ -265,4 +275,89 @@ body {
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
+}
+
+/* ── entrance animation ── */
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(1.25rem);
+  }
+}
+
+.animate-in {
+  animation: fade-in-up 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.animate-in-delay-1 { animation-delay: 80ms; }
+.animate-in-delay-2 { animation-delay: 160ms; }
+.animate-in-delay-3 { animation-delay: 240ms; }
+.animate-in-delay-4 { animation-delay: 320ms; }
+.animate-in-delay-5 { animation-delay: 400ms; }
+
+/* ── hover lift ── */
+.hover-lift {
+  will-change: transform;
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s ease, border-color 0.25s ease;
+}
+
+.hover-lift:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 40px -12px rgba(0, 0, 0, 0.35);
+  border-color: color-mix(in srgb, var(--ss-accent-purple) 30%, transparent);
+}
+
+/* ── animated gradient ── */
+@keyframes gradient-shift {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+.gradient-text-animated {
+  background: linear-gradient(135deg, var(--ss-accent-purple), var(--ss-accent-pink), var(--ss-accent-cyan), var(--ss-accent-purple));
+  background-size: 300% 300%;
+  animation: gradient-shift 6s ease infinite;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ── chart line draw ── */
+@keyframes draw-line {
+  to { stroke-dashoffset: 0; }
+}
+
+.chart-draw {
+  stroke-dasharray: 600;
+  stroke-dashoffset: 600;
+  animation: draw-line 1.8s cubic-bezier(0.16, 1, 0.3, 1) 0.4s both;
+}
+
+/* ── fade in ── */
+@keyframes fade-in {
+  from { opacity: 0; }
+}
+
+.chart-area-fade {
+  animation: fade-in 1.2s ease 0.6s both;
+}
+
+/* ── bar fill ── */
+@keyframes reveal-bar {
+  from { clip-path: inset(0 100% 0 0); }
+  to { clip-path: inset(0 0 0 0); }
+}
+
+.bar-fill {
+  animation: reveal-bar 0.8s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* ── pulse ── */
+@keyframes pulse-soft {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+.pulse-soft {
+  animation: pulse-soft 2s ease-in-out infinite;
 }
