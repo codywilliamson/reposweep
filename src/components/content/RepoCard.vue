@@ -43,7 +43,7 @@ function formatDate(d: string) {
 
 <template>
   <div
-    class="glass group rounded-xl transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:border-accent-purple/30"
+    class="glass group overflow-hidden rounded-xl transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:border-accent-purple/30"
     :class="[
       selected ? 'ring-2 ring-accent-purple' : '',
       expanded ? 'sm:col-span-2 lg:col-span-3' : '',
