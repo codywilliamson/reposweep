@@ -1,12 +1,14 @@
 import type { APIRoute } from "astro";
-import { exchangeCode, encodeSession } from "@/lib/auth";
+import { exchangeCode, encodeSession, getAuthEnv } from "@/lib/auth";
 
-export const GET: APIRoute = async ({ url, cookies, redirect }) => {
+export const GET: APIRoute = async ({ url, cookies, redirect, locals }) => {
   const code = url.searchParams.get("code");
   if (!code) return redirect("/");
 
+  const env = getAuthEnv((locals as any).runtime?.env);
+
   try {
-    const session = await exchangeCode(code);
+    const session = await exchangeCode(code, env);
     cookies.set("session", encodeSession(session), {
       path: "/",
       httpOnly: true,
@@ -15,7 +17,7 @@ export const GET: APIRoute = async ({ url, cookies, redirect }) => {
       maxAge: 60 * 60 * 24 * 7, // 7 days
     });
     return redirect("/dashboard");
-  } catch {
-    return redirect("/?error=auth_failed");
+  } catch (e: any) {
+    return redirect(`/?error=${encodeURIComponent(e.message || "auth_failed")}`);
   }
 };

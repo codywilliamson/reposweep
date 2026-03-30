@@ -1,11 +1,12 @@
 import { defineConfig } from "astro/config";
 import vue from "@astrojs/vue";
-import node from "@astrojs/node";
+import cloudflare from "@astrojs/cloudflare";
 import tailwindcss from "@tailwindcss/vite";
 
 export default defineConfig({
   output: "server",
-  adapter: node({ mode: "standalone" }),
+  adapter: cloudflare(),
+  site: "https://reposweep.dev",
   integrations: [vue({ appEntrypoint: "/src/vue-app" })],
   vite: {
     plugins: [tailwindcss()],

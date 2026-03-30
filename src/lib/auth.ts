@@ -4,31 +4,51 @@ const GITHUB_AUTH_URL = "https://github.com/login/oauth/authorize";
 const GITHUB_TOKEN_URL = "https://github.com/login/oauth/access_token";
 const GITHUB_USER_URL = "https://api.github.com/user";
 
-export function getLoginUrl(): string {
-  const clientId = import.meta.env.GITHUB_CLIENT_ID;
+interface AuthEnv {
+  GITHUB_CLIENT_ID: string;
+  GITHUB_CLIENT_SECRET: string;
+}
+
+// in prod: read from cloudflare runtime bindings
+// in dev: read from import.meta.env (populated by .env file)
+export function getAuthEnv(runtimeEnv?: Record<string, unknown>): AuthEnv {
+  if (import.meta.env.DEV) {
+    return {
+      GITHUB_CLIENT_ID: import.meta.env.GITHUB_CLIENT_ID,
+      GITHUB_CLIENT_SECRET: import.meta.env.GITHUB_CLIENT_SECRET,
+    };
+  }
+  return {
+    GITHUB_CLIENT_ID: (runtimeEnv?.GITHUB_CLIENT_ID as string) ?? "",
+    GITHUB_CLIENT_SECRET: (runtimeEnv?.GITHUB_CLIENT_SECRET as string) ?? "",
+  };
+}
+
+function getRedirectUri(): string {
+  const base = import.meta.env.DEV ? "http://localhost:4321" : import.meta.env.SITE;
+  return `${base}/api/auth/callback`;
+}
+
+export function getLoginUrl(env: AuthEnv): string {
   const params = new URLSearchParams({
-    client_id: clientId,
+    client_id: env.GITHUB_CLIENT_ID,
     scope: "repo delete_repo",
     redirect_uri: getRedirectUri(),
   });
   return `${GITHUB_AUTH_URL}?${params}`;
 }
 
-function getRedirectUri(): string {
-  const base = import.meta.env.SITE ?? "http://localhost:4321";
-  return `${base}/api/auth/callback`;
-}
-
-export async function exchangeCode(code: string): Promise<GitHubSession> {
+export async function exchangeCode(code: string, env: AuthEnv): Promise<GitHubSession> {
   const res = await fetch(GITHUB_TOKEN_URL, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
       Accept: "application/json",
+      "User-Agent": "RepoSweep",
     },
     body: JSON.stringify({
-      client_id: import.meta.env.GITHUB_CLIENT_ID,
-      client_secret: import.meta.env.GITHUB_CLIENT_SECRET,
+      client_id: env.GITHUB_CLIENT_ID,
+      client_secret: env.GITHUB_CLIENT_SECRET,
       code,
       redirect_uri: getRedirectUri(),
     }),
@@ -38,7 +58,7 @@ export async function exchangeCode(code: string): Promise<GitHubSession> {
   if (data.error) throw new Error(data.error_description || data.error);
 
   const userRes = await fetch(GITHUB_USER_URL, {
-    headers: { Authorization: `Bearer ${data.access_token}` },
+    headers: { Authorization: `Bearer ${data.access_token}`, "User-Agent": "RepoSweep" },
   });
   const user = await userRes.json();
 
@@ -52,12 +72,12 @@ export async function exchangeCode(code: string): Promise<GitHubSession> {
 
 // simple cookie-based session — encode as base64 json
 export function encodeSession(session: GitHubSession): string {
-  return Buffer.from(JSON.stringify(session)).toString("base64");
+  return btoa(JSON.stringify(session));
 }
 
 export function decodeSession(cookie: string): GitHubSession | null {
   try {
-    return JSON.parse(Buffer.from(cookie, "base64").toString("utf-8"));
+    return JSON.parse(atob(cookie));
   } catch {
     return null;
   }
