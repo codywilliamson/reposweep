@@ -1,9 +1,10 @@
 import type { APIRoute } from "astro";
 import { getSessionFromCookies } from "@/lib/auth";
 import * as github from "@/lib/github";
+import { getRuntimeEnv } from "@/lib/storage";
 
-export const POST: APIRoute = async ({ params, request, cookies }) => {
-  const session = getSessionFromCookies(cookies);
+export const POST: APIRoute = async ({ params, request, cookies, locals }) => {
+  const session = await getSessionFromCookies(cookies, getRuntimeEnv(locals));
   if (!session) return new Response("Unauthorized", { status: 401 });
 
   const body = await request.json();

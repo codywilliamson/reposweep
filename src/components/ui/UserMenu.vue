@@ -36,6 +36,13 @@ const open = ref(false);
           Dashboard
         </a>
         <a
+          href="/insights"
+          class="flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm text-fg-secondary transition-colors hover:bg-bg-tertiary hover:text-fg-primary"
+        >
+          <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="m7 13 4-4 3 3 5-7"/></svg>
+          Insights
+        </a>
+        <a
           :href="`https://github.com/${login}`"
           target="_blank"
           rel="noopener"

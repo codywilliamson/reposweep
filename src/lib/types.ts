@@ -22,6 +22,47 @@ export interface GitHubSession {
   name: string | null;
 }
 
+export type CommitTrendDirection = "up" | "down" | "steady";
+
+export interface WeeklyCommitTotal {
+  weekStart: string;
+  total: number;
+}
+
+export interface RepoCommitSpread {
+  id: number;
+  name: string;
+  fullName: string;
+  htmlUrl: string;
+  commits: number;
+  commitsLast30Days: number;
+  commitsLast7Days: number;
+  averageWeeklyCommits: number;
+  trendDirection: CommitTrendDirection;
+  trendDelta: number;
+  sparkline: number[];
+}
+
+export interface CommitInsights {
+  days: number;
+  generatedAt: string;
+  totalRepoCount: number;
+  analyzedRepoCount: number;
+  activeRepoCount: number;
+  totalCommits: number;
+  commitsLast30Days: number;
+  commitsLast7Days: number;
+  previous7DayCommits: number;
+  averageDailyCommits: number;
+  averageWeeklyCommits: number;
+  averageCommitsPerActiveRepo: number;
+  topRepoShare: number;
+  trendDirection: CommitTrendDirection;
+  trendDelta: number;
+  weeklyTotals: WeeklyCommitTotal[];
+  repoSpread: RepoCommitSpread[];
+}
+
 export type Visibility = "all" | "public" | "private";
 export type ArchivedFilter = "all" | "active" | "archived";
 export type SortField = "name" | "created" | "updated" | "stars";

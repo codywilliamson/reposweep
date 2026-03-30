@@ -2,13 +2,23 @@
 import BaseLayout from "@/layouts/BaseLayout.astro";
 import RepoGrid from "@/components/content/RepoGrid.vue";
 import { fetchUserRepos } from "@/lib/github";
+import type { Repo } from "@/lib/types";
 
 const session = Astro.locals.session!;
-let repos = [];
+let repos: Repo[] = [];
 let error = "";
+let privateCount = 0;
+let archivedCount = 0;
+let recentlyPushedCount = 0;
 
 try {
   repos = await fetchUserRepos(session.accessToken);
+  privateCount = repos.filter((repo) => repo.private).length;
+  archivedCount = repos.filter((repo) => repo.archived).length;
+  recentlyPushedCount = repos.filter((repo) => {
+    if (!repo.pushed_at) return false;
+    return Date.now() - new Date(repo.pushed_at).getTime() <= 30 * 24 * 60 * 60 * 1000;
+  }).length;
 } catch (e: any) {
   error = e.message ?? "Failed to fetch repositories";
 }
@@ -23,6 +33,12 @@ try {
           {repos.length} {repos.length === 1 ? "repository" : "repositories"} found
         </p>
       </div>
+      <a
+        href="/insights"
+        class="hidden rounded-xl border border-border-default px-4 py-2 text-sm font-medium text-fg-secondary transition-colors hover:border-accent-cyan hover:text-accent-cyan sm:inline-flex"
+      >
+        View commit insights
+      </a>
     </div>
 
     {error ? (
@@ -33,7 +49,24 @@ try {
         </a>
       </div>
     ) : (
-      <RepoGrid client:load repos={repos} login={session.login} />
+      <>
+        <div class="mb-6 grid gap-4 sm:grid-cols-3">
+          <div class="glass rounded-2xl p-5">
+            <p class="text-sm text-fg-muted">Private repos</p>
+            <p class="mt-2 text-3xl font-semibold">{privateCount}</p>
+          </div>
+          <div class="glass rounded-2xl p-5">
+            <p class="text-sm text-fg-muted">Archived repos</p>
+            <p class="mt-2 text-3xl font-semibold">{archivedCount}</p>
+          </div>
+          <div class="glass rounded-2xl p-5">
+            <p class="text-sm text-fg-muted">Pushed in 30 days</p>
+            <p class="mt-2 text-3xl font-semibold">{recentlyPushedCount}</p>
+          </div>
+        </div>
+
+        <RepoGrid client:load repos={repos} login={session.login} />
+      </>
     )}
   </div>
 </BaseLayout>

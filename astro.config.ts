@@ -9,6 +9,6 @@ export default defineConfig({
   site: "https://reposweep.dev",
   integrations: [vue({ appEntrypoint: "/src/vue-app" })],
   vite: {
-    plugins: [tailwindcss()],
+    plugins: [tailwindcss() as never],
   },
 });

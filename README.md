@@ -12,6 +12,8 @@ Manage your GitHub repos — toggle visibility, archive, rename, delete — all 
 - **Rename & describe** — update repo metadata without leaving the dashboard
 - **Filter & sort** — search by name, filter by language/visibility, sort by any field
 - **Real-time status** — watch operations complete live in the status queue
+- **Commit insights** — track commit totals, weekly trendlines, repo spread, and recent velocity
+- **KV sessions** — keep GitHub tokens out of browser cookies with an opaque KV-backed session ID
 
 ## Tech Stack
 
@@ -27,6 +29,17 @@ Manage your GitHub repos — toggle visibility, archive, rename, delete — all 
 pnpm install
 pnpm dev
 ```
+
+## Cloudflare KV Setup
+
+Create the KV namespaces before deploying:
+
+```bash
+pnpm wrangler kv namespace create SESSION
+pnpm wrangler kv namespace create SESSION_STORE
+```
+
+Then copy the generated IDs into the commented `[[kv_namespaces]]` blocks in [`wrangler.toml`](./wrangler.toml).
 
 ## License
 

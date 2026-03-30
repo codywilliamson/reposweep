@@ -1,0 +1,258 @@
+---
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import { fetchCommitInsights, fetchUserRepos } from "@/lib/github";
+import { getRuntimeEnv } from "@/lib/storage";
+import type { CommitTrendDirection } from "@/lib/types";
+
+const session = Astro.locals.session!;
+const runtimeEnv = getRuntimeEnv(Astro.locals);
+
+let error = "";
+let insights = null;
+
+try {
+  const repos = await fetchUserRepos(session.accessToken);
+  insights = await fetchCommitInsights(session.accessToken, repos, session.login, 90, runtimeEnv);
+} catch (e: any) {
+  error = e.message ?? "Failed to load commit insights";
+}
+
+const numberFormatter = new Intl.NumberFormat("en-US");
+
+function formatNumber(value: number) {
+  return numberFormatter.format(Math.round(value * 10) / 10);
+}
+
+function formatPercent(value: number) {
+  const sign = value > 0 ? "+" : "";
+  return `${sign}${formatNumber(value)}%`;
+}
+
+function formatDate(value: string) {
+  return new Date(value).toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+  });
+}
+
+function trendLabel(direction: CommitTrendDirection, delta: number) {
+  if (direction === "steady") return "Steady";
+  return `${direction === "up" ? "Up" : "Down"} ${formatPercent(delta)}`;
+}
+
+function trendClasses(direction: CommitTrendDirection) {
+  switch (direction) {
+    case "up":
+      return "bg-accent-green/15 text-accent-green";
+    case "down":
+      return "bg-accent-red/15 text-accent-red";
+    default:
+      return "bg-accent-cyan/15 text-accent-cyan";
+  }
+}
+
+const maxWeeklyTotal = insights ? Math.max(...insights.weeklyTotals.map((week) => week.total), 1) : 1;
+const maxRepoCommits = insights ? Math.max(...insights.repoSpread.map((repo) => repo.commits), 1) : 1;
+const maxSparkline = insights
+  ? Math.max(...insights.repoSpread.flatMap((repo) => repo.sparkline), 1)
+  : 1;
+---
+
+<BaseLayout title="Insights">
+  <div class="mx-auto max-w-7xl px-4 py-8 sm:px-6">
+    <div class="mb-8 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+      <div>
+        <p class="text-sm uppercase tracking-[0.24em] text-accent-cyan">Commit Analytics</p>
+        <h1 class="mt-2 text-3xl font-bold sm:text-4xl">Repo velocity, spread, and trendlines</h1>
+        {insights && (
+          <p class="mt-2 max-w-3xl text-sm text-fg-muted">
+            Looking at the last {insights.days} days across {insights.activeRepoCount} active repos, with
+            {` ${insights.analyzedRepoCount} `}
+            recently pushed repos analyzed out of {insights.totalRepoCount} total.
+          </p>
+        )}
+      </div>
+
+      {insights && (
+        <div class="rounded-2xl border border-border-default bg-bg-secondary/80 px-4 py-3 text-sm text-fg-muted">
+          Refreshed {new Date(insights.generatedAt).toLocaleString("en-US", {
+            month: "short",
+            day: "numeric",
+            hour: "numeric",
+            minute: "2-digit",
+          })}
+        </div>
+      )}
+    </div>
+
+    {error ? (
+      <div class="glass rounded-2xl p-8 text-center">
+        <p class="text-accent-red">{error}</p>
+        <p class="mt-2 text-sm text-fg-muted">
+          GitHub sometimes returns repository statistics lazily. A refresh in a minute usually fixes it.
+        </p>
+      </div>
+    ) : insights ? (
+      <>
+        <section class="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
+          <div class="glass rounded-2xl p-5">
+            <p class="text-sm text-fg-muted">Commits ({insights.days}d)</p>
+            <p class="mt-3 text-3xl font-semibold">{formatNumber(insights.totalCommits)}</p>
+            <p class="mt-2 text-sm text-fg-muted">{formatNumber(insights.commitsLast30Days)} in the last 30 days</p>
+          </div>
+          <div class="glass rounded-2xl p-5">
+            <p class="text-sm text-fg-muted">Weekly Velocity</p>
+            <p class="mt-3 text-3xl font-semibold">{formatNumber(insights.averageWeeklyCommits)}</p>
+            <p class="mt-2 text-sm text-fg-muted">{formatNumber(insights.averageDailyCommits)} commits per day</p>
+          </div>
+          <div class="glass rounded-2xl p-5">
+            <p class="text-sm text-fg-muted">7-Day Trend</p>
+            <p class="mt-3 text-3xl font-semibold">{formatNumber(insights.commitsLast7Days)}</p>
+            <p class:list={["mt-2 inline-flex rounded-full px-2.5 py-1 text-xs font-medium", trendClasses(insights.trendDirection)]}>
+              {trendLabel(insights.trendDirection, insights.trendDelta)}
+            </p>
+          </div>
+          <div class="glass rounded-2xl p-5">
+            <p class="text-sm text-fg-muted">Active Repos</p>
+            <p class="mt-3 text-3xl font-semibold">{formatNumber(insights.activeRepoCount)}</p>
+            <p class="mt-2 text-sm text-fg-muted">{formatNumber(insights.averageCommitsPerActiveRepo)} commits per active repo</p>
+          </div>
+          <div class="glass rounded-2xl p-5">
+            <p class="text-sm text-fg-muted">Top Repo Share</p>
+            <p class="mt-3 text-3xl font-semibold">{formatNumber(insights.topRepoShare)}%</p>
+            <p class="mt-2 text-sm text-fg-muted">How concentrated your recent commit flow is</p>
+          </div>
+        </section>
+
+        <section class="mt-8 grid gap-6 xl:grid-cols-[1.4fr_1fr]">
+          <div class="glass rounded-2xl p-6">
+            <div class="flex items-center justify-between">
+              <div>
+                <h2 class="text-xl font-semibold">Weekly Commit Trend</h2>
+                <p class="mt-1 text-sm text-fg-muted">A rolling view of commit volume across your most recently active repos.</p>
+              </div>
+              <div class="rounded-full bg-bg-primary px-3 py-1 text-xs text-fg-muted">
+                Last {insights.weeklyTotals.length} weeks
+              </div>
+            </div>
+
+            <div class="mt-8 flex h-64 items-end gap-2">
+              {insights.weeklyTotals.map((week) => (
+                <div class="flex min-w-0 flex-1 flex-col items-center justify-end gap-2">
+                  <div
+                    class="w-full rounded-t-xl bg-gradient-to-t from-accent-cyan/40 via-accent-purple/70 to-accent-purple transition-opacity hover:opacity-90"
+                    style={`height: ${Math.max((week.total / maxWeeklyTotal) * 100, week.total > 0 ? 6 : 0)}%;`}
+                    title={`${week.total} commits starting ${formatDate(week.weekStart)}`}
+                  />
+                  <div class="text-[11px] text-fg-muted">{formatDate(week.weekStart)}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div class="glass rounded-2xl p-6">
+            <h2 class="text-xl font-semibold">What This Says</h2>
+            <div class="mt-5 space-y-4 text-sm text-fg-secondary">
+              <div class="rounded-2xl border border-border-default bg-bg-primary/70 p-4">
+                <p class="text-xs uppercase tracking-[0.2em] text-fg-muted">Current Pace</p>
+                <p class="mt-2 text-lg font-semibold text-fg-primary">
+                  {formatNumber(insights.commitsLast7Days)} commits in the last 7 days
+                </p>
+                <p class="mt-1 text-fg-muted">
+                  Versus {formatNumber(insights.previous7DayCommits)} in the prior week.
+                </p>
+              </div>
+              <div class="rounded-2xl border border-border-default bg-bg-primary/70 p-4">
+                <p class="text-xs uppercase tracking-[0.2em] text-fg-muted">Repo Spread</p>
+                <p class="mt-2 text-lg font-semibold text-fg-primary">
+                  {formatNumber(insights.activeRepoCount)} repos with recent commit activity
+                </p>
+                <p class="mt-1 text-fg-muted">
+                  The busiest repo accounts for {formatNumber(insights.topRepoShare)}% of tracked commits.
+                </p>
+              </div>
+              <div class="rounded-2xl border border-border-default bg-bg-primary/70 p-4">
+                <p class="text-xs uppercase tracking-[0.2em] text-fg-muted">Coverage</p>
+                <p class="mt-2 text-lg font-semibold text-fg-primary">
+                  {formatNumber(insights.analyzedRepoCount)} recently pushed repos analyzed
+                </p>
+                <p class="mt-1 text-fg-muted">
+                  This keeps the Worker responsive while still showing the repos where most current activity usually lives.
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="mt-8 glass rounded-2xl p-6">
+          <div class="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <h2 class="text-xl font-semibold">Commit Spread by Repo</h2>
+              <p class="mt-1 text-sm text-fg-muted">
+                Top repositories by commit volume in the last {insights.days} days.
+              </p>
+            </div>
+            <p class="text-sm text-fg-muted">Showing {insights.repoSpread.length} repos</p>
+          </div>
+
+          <div class="mt-6 overflow-x-auto">
+            <table class="min-w-full border-separate border-spacing-y-3">
+              <thead>
+                <tr class="text-left text-xs uppercase tracking-[0.2em] text-fg-muted">
+                  <th class="pb-1 pr-4">Repository</th>
+                  <th class="pb-1 pr-4">Spread</th>
+                  <th class="pb-1 pr-4">Total</th>
+                  <th class="pb-1 pr-4">30d</th>
+                  <th class="pb-1 pr-4">7d</th>
+                  <th class="pb-1 pr-4">Avg/Wk</th>
+                  <th class="pb-1">Trend</th>
+                </tr>
+              </thead>
+              <tbody>
+                {insights.repoSpread.map((repo) => (
+                  <tr class="rounded-2xl bg-bg-secondary/70">
+                    <td class="rounded-l-2xl px-4 py-4 align-middle">
+                      <a href={repo.htmlUrl} target="_blank" rel="noopener" class="font-medium text-fg-primary transition-colors hover:text-accent-cyan">
+                        {repo.fullName}
+                      </a>
+                    </td>
+                    <td class="px-4 py-4 align-middle">
+                      <div class="flex min-w-[180px] items-center gap-3">
+                        <div class="h-2 flex-1 overflow-hidden rounded-full bg-bg-primary">
+                          <div
+                            class="h-full rounded-full bg-gradient-to-r from-accent-cyan to-accent-purple"
+                            style={`width: ${(repo.commits / maxRepoCommits) * 100}%;`}
+                          />
+                        </div>
+                        <span class="text-xs text-fg-muted">{formatNumber((repo.commits / insights.totalCommits) * 100)}%</span>
+                      </div>
+                    </td>
+                    <td class="px-4 py-4 align-middle font-medium text-fg-primary">{formatNumber(repo.commits)}</td>
+                    <td class="px-4 py-4 align-middle text-fg-secondary">{formatNumber(repo.commitsLast30Days)}</td>
+                    <td class="px-4 py-4 align-middle text-fg-secondary">{formatNumber(repo.commitsLast7Days)}</td>
+                    <td class="px-4 py-4 align-middle text-fg-secondary">{formatNumber(repo.averageWeeklyCommits)}</td>
+                    <td class="rounded-r-2xl px-4 py-4 align-middle">
+                      <div class="flex items-center gap-3">
+                        <div class="flex h-9 items-end gap-1">
+                          {repo.sparkline.map((value) => (
+                            <span
+                              class="w-2 rounded-t-full bg-accent-purple/70"
+                              style={`height: ${Math.max((value / maxSparkline) * 100, value > 0 ? 14 : 4)}%;`}
+                            />
+                          ))}
+                        </div>
+                        <span class:list={["rounded-full px-2.5 py-1 text-xs font-medium", trendClasses(repo.trendDirection)]}>
+                          {trendLabel(repo.trendDirection, repo.trendDelta)}
+                        </span>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      </>
+    ) : null}
+  </div>
+</BaseLayout>

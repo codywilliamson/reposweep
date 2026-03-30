@@ -1,8 +1,9 @@
 ---
 import BaseLayout from "@/layouts/BaseLayout.astro";
 import { getSessionFromCookies } from "@/lib/auth";
+import { getRuntimeEnv } from "@/lib/storage";
 
-const session = getSessionFromCookies(Astro.cookies);
+const session = await getSessionFromCookies(Astro.cookies, getRuntimeEnv(Astro.locals));
 if (session) return Astro.redirect("/dashboard");
 
 const features = [
