@@ -4,8 +4,8 @@ import { getSessionStore, type KVNamespaceLike } from "./storage";
 
 const USER_AGENT = "RepoSweep";
 const COMMIT_INSIGHTS_CACHE_TTL = 60 * 15;
-const MAX_INSIGHT_REPOS = 60;
-const COMMIT_ACTIVITY_RETRY_DELAYS_MS = [300, 900, 1500];
+const MAX_INSIGHT_REPOS = 24;
+const COMMIT_ACTIVITY_RETRY_DELAYS_MS = [250];
 
 interface CommitActivityWeek {
   total: number;
@@ -70,6 +70,10 @@ export async function fetchCommitInsights(
 
   const candidates = repos
     .filter((repo) => Boolean(repo.pushed_at))
+    .filter((repo) => {
+      const pushedAt = new Date(repo.pushed_at ?? 0).getTime();
+      return pushedAt >= Date.now() - normalizedDays * 2 * 24 * 60 * 60 * 1000;
+    })
     .sort((a, b) => new Date(b.pushed_at ?? 0).getTime() - new Date(a.pushed_at ?? 0).getTime())
     .slice(0, MAX_INSIGHT_REPOS);
 
@@ -195,16 +199,20 @@ async function getCommitActivityWeeks(token: string, owner: string, repo: string
   const octokit = createOctokit(token);
 
   for (let attempt = 0; attempt <= COMMIT_ACTIVITY_RETRY_DELAYS_MS.length; attempt++) {
-    const response = await octokit.request("GET /repos/{owner}/{repo}/stats/commit_activity", {
-      owner,
-      repo,
-      headers: {
-        "User-Agent": USER_AGENT,
-      },
-    });
+    try {
+      const response = await octokit.request("GET /repos/{owner}/{repo}/stats/commit_activity", {
+        owner,
+        repo,
+        headers: {
+          "User-Agent": USER_AGENT,
+        },
+      });
 
-    if (response.status !== 202) {
-      return response.data as CommitActivityWeek[];
+      if (response.status !== 202) {
+        return Array.isArray(response.data) ? response.data as CommitActivityWeek[] : [];
+      }
+    } catch {
+      return [];
     }
 
     const delay = COMMIT_ACTIVITY_RETRY_DELAYS_MS[attempt];
@@ -257,12 +265,16 @@ async function mapWithConcurrency<T, R>(
   async function runWorker() {
     while (currentIndex < items.length) {
       const index = currentIndex++;
-      results[index] = await worker(items[index], index);
+      try {
+        results[index] = await worker(items[index], index);
+      } catch {
+        continue;
+      }
     }
   }
 
   await Promise.all(Array.from({ length: Math.min(concurrency, items.length) }, () => runWorker()));
-  return results;
+  return results.filter((result) => result !== undefined);
 }
 
 async function readCachedInsights(store: KVNamespaceLike | null, key: string): Promise<CommitInsights | null> {
