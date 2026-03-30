@@ -47,6 +47,7 @@ export interface CommitInsights {
   days: number;
   generatedAt: string;
   totalRepoCount: number;
+  matchingRepoCount: number;
   analyzedRepoCount: number;
   activeRepoCount: number;
   totalCommits: number;
@@ -61,6 +62,19 @@ export interface CommitInsights {
   trendDelta: number;
   weeklyTotals: WeeklyCommitTotal[];
   repoSpread: RepoCommitSpread[];
+}
+
+export type InsightsVisibility = "all" | "public" | "private";
+export type InsightsArchived = "all" | "active" | "archived";
+export type InsightsSort = "total" | "last30" | "last7" | "avgWeekly";
+
+export interface CommitInsightsFilters {
+  days: number;
+  visibility: InsightsVisibility;
+  archived: InsightsArchived;
+  search: string;
+  limit: number;
+  sort: InsightsSort;
 }
 
 export type Visibility = "all" | "public" | "private";
