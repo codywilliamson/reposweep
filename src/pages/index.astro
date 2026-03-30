@@ -6,103 +6,370 @@ import { getRuntimeEnv } from "@/lib/storage";
 const session = await getSessionFromCookies(Astro.cookies, getRuntimeEnv(Astro.locals));
 if (session) return Astro.redirect("/dashboard");
 
-const features = [
+const highlights = [
   {
-    title: "Toggle Visibility",
-    description: "Switch repos between public and private with one click.",
-    icon: `<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>`,
+    eyebrow: "New",
+    title: "Commit insights that feel alive",
+    description: "Track repo velocity, weekly trendlines, repo spread, and commit concentration without leaving the app.",
   },
   {
-    title: "Bulk Actions",
-    description: "Select multiple repos and act on them all at once.",
-    icon: `<rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>`,
+    eyebrow: "Safer auth",
+    title: "KV-backed sessions on Workers",
+    description: "GitHub tokens stay off the browser cookie payload and the app plays nicely with the Cloudflare runtime.",
   },
   {
-    title: "Archive & Delete",
-    description: "Clean house — archive stale repos or delete them for good.",
-    icon: `<polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>`,
+    eyebrow: "Built for volume",
+    title: "Made for agent-heavy GitHub accounts",
+    description: "Bulk repo actions, fast filtering, and high-signal analytics for people shipping across too many repos to count.",
+  },
+];
+
+const featureCards = [
+  {
+    title: "Bulk Repo Ops",
+    description: "Visibility changes, archiving, delete flows, rename, and description edits from one place.",
+    icon: `<path d="M4 6h16"/><path d="M4 12h10"/><path d="M4 18h7"/><path d="M17 10l3 3-3 3"/>`,
   },
   {
-    title: "Rename & Describe",
-    description: "Update repo names and descriptions without leaving the dashboard.",
-    icon: `<path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>`,
+    title: "Commit Analytics",
+    description: "Totals, recent velocity, weekly charts, and repo-level spread tuned for real active windows.",
+    icon: `<path d="M3 3v18h18"/><path d="m7 13 4-4 3 3 5-7"/>`,
   },
   {
-    title: "Filter & Sort",
-    description: "Search, filter by language or visibility, and sort by any field.",
+    title: "Server-Side Filters",
+    description: "Search repos, narrow by visibility, window, archive state, repo coverage, and sort mode.",
     icon: `<polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>`,
   },
   {
-    title: "Real-time Status",
-    description: "Watch operations complete live with a built-in status queue.",
-    icon: `<polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>`,
+    title: "Coverage-Aware Insights",
+    description: "The page tells you how many repos were matched and analyzed, so the numbers have context.",
+    icon: `<path d="M12 20s8-4 8-10V4l-8-2-8 2v6c0 6 8 10 8 10Z"/><path d="m9 12 2 2 4-4"/>`,
   },
+  {
+    title: "Cloudflare-Friendly",
+    description: "Built for Workers SSR with practical runtime choices instead of pretending Node semantics exist.",
+    icon: `<path d="M13 2 3 14h8l-1 8 11-14h-8l1-6Z"/>`,
+  },
+  {
+    title: "Queue + Control",
+    description: "Live operation feedback keeps destructive or long-running repo changes understandable.",
+    icon: `<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 8h10"/><path d="M7 12h6"/><path d="M7 16h8"/>`,
+  },
+];
+
+const stats = [
+  { label: "One dashboard for cleanup", value: "Bulk-safe repo controls" },
+  { label: "One dashboard for signal", value: "Velocity, trendlines, spread" },
+  { label: "One dashboard for trust", value: "KV-backed sessions on CF" },
 ];
 ---
 
 <BaseLayout title="RepoSweep">
-  <div class="mx-auto max-w-5xl px-4 sm:px-6">
-    <!-- hero -->
-    <div class="flex min-h-[calc(100dvh-12rem)] flex-col items-center justify-center py-16 text-center">
-      <div class="mx-auto mb-8 flex h-20 w-20 items-center justify-center rounded-2xl bg-accent-purple/20">
-        <svg class="h-10 w-10 text-accent-purple" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
-        </svg>
-      </div>
-
-      <h1 class="mb-4 text-5xl font-bold tracking-tight sm:text-6xl">
-        <span class="gradient-text">RepoSweep</span>
-      </h1>
-      <p class="mx-auto mb-10 max-w-xl text-lg text-fg-muted sm:text-xl">
-        Your GitHub repos, one dashboard. Toggle visibility, archive, rename, delete — no more clicking through dozens of settings pages.
-      </p>
-
-      <div class="flex flex-col items-center gap-4 sm:flex-row">
-        <a
-          href="/api/auth/login"
-          class="inline-flex items-center gap-3 rounded-xl bg-accent-purple px-7 py-3.5 text-base font-medium text-bg-primary transition-all hover:opacity-90 hover:shadow-lg"
-        >
-          <svg class="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
-          </svg>
-          Sign in with GitHub
-        </a>
-        <a
-          href="https://github.com/codywilliamson/reposweep"
-          target="_blank"
-          rel="noopener"
-          class="inline-flex items-center gap-2 rounded-xl border border-border-default px-7 py-3.5 text-base font-medium text-fg-secondary transition-colors hover:border-accent-purple hover:text-fg-primary"
-        >
-          <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4"/>
-            <path d="M9 18c-4.51 2-5-2-7-2"/>
-          </svg>
-          View on GitHub
-        </a>
-      </div>
-
-      <p class="mt-8 text-xs text-fg-muted">
-        Requires <code class="rounded bg-bg-tertiary px-1.5 py-0.5 font-mono text-accent-cyan">repo</code> and
-        <code class="rounded bg-bg-tertiary px-1.5 py-0.5 font-mono text-accent-cyan">delete_repo</code> scopes
-      </p>
+  <div class="relative overflow-hidden">
+    <div class="pointer-events-none absolute inset-x-0 top-0 h-[38rem]">
+      <div class="landing-halo landing-halo-left" />
+      <div class="landing-halo landing-halo-right" />
+      <div class="landing-grid absolute inset-0 opacity-50" />
     </div>
 
-    <!-- features -->
-    <section class="pb-24">
-      <h2 class="mb-12 text-center text-2xl font-bold text-fg-primary sm:text-3xl">Everything you need, nothing you don't</h2>
-      <div class="stagger grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {features.map((f) => (
-          <div class="glass rounded-xl p-6">
-            <div class="mb-4 flex h-10 w-10 items-center justify-center rounded-lg bg-accent-purple/20">
-              <svg class="h-5 w-5 text-accent-purple" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <Fragment set:html={f.icon} />
-              </svg>
-            </div>
-            <h3 class="mb-1 font-semibold text-fg-primary">{f.title}</h3>
-            <p class="text-sm text-fg-muted">{f.description}</p>
+    <div class="relative mx-auto max-w-7xl px-4 pb-24 pt-10 sm:px-6">
+      <section class="grid min-h-[calc(100dvh-10rem)] items-center gap-12 lg:grid-cols-[1.02fr_0.98fr]">
+        <div class="scroll-reveal">
+          <div class="mb-6 inline-flex items-center gap-2 rounded-full border border-accent-cyan/30 bg-accent-cyan/10 px-4 py-2 text-xs font-medium uppercase tracking-[0.24em] text-accent-cyan">
+            <span class="h-2 w-2 rounded-full bg-accent-cyan" />
+            Repo Control + Commit Intelligence
           </div>
-        ))}
-      </div>
-    </section>
+
+          <h1 class="max-w-4xl text-5xl font-bold leading-[0.95] tracking-tight sm:text-6xl xl:text-7xl">
+            Sweep the chaos,
+            <span class="gradient-text block pt-2">see where the code is actually moving.</span>
+          </h1>
+
+          <p class="mt-6 max-w-2xl text-lg leading-8 text-fg-secondary sm:text-xl">
+            RepoSweep started as a fast way to clean up GitHub repos. Now it doubles as an operations deck for
+            high-churn accounts, with commit analytics, weekly trendlines, better filtering, and Cloudflare-native
+            session handling.
+          </p>
+
+          <div class="mt-8 flex flex-col items-start gap-4 sm:flex-row sm:items-center">
+            <a
+              href="/api/auth/login"
+              class="inline-flex items-center gap-3 rounded-2xl bg-accent-purple px-7 py-3.5 text-base font-medium text-bg-primary transition-all hover:-translate-y-0.5 hover:opacity-90 hover:shadow-[0_18px_60px_-22px_var(--ss-accent-purple)]"
+            >
+              <svg class="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+              </svg>
+              Sign in with GitHub
+            </a>
+            <a
+              href="https://github.com/codywilliamson/reposweep"
+              target="_blank"
+              rel="noopener"
+              class="inline-flex items-center gap-2 rounded-2xl border border-border-default bg-bg-secondary/70 px-7 py-3.5 text-base font-medium text-fg-secondary transition-colors hover:border-accent-purple hover:text-fg-primary"
+            >
+              <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4"/>
+                <path d="M9 18c-4.51 2-5-2-7-2"/>
+              </svg>
+              View on GitHub
+            </a>
+          </div>
+
+          <div class="mt-8 flex flex-wrap items-center gap-3 text-sm text-fg-muted">
+            <span class="rounded-full bg-bg-secondary/70 px-3 py-1.5">Commit trendlines</span>
+            <span class="rounded-full bg-bg-secondary/70 px-3 py-1.5">Repo spread + filters</span>
+            <span class="rounded-full bg-bg-secondary/70 px-3 py-1.5">Workers-native sessions</span>
+          </div>
+
+          <p class="mt-8 text-xs text-fg-muted">
+            Requires <code class="rounded bg-bg-tertiary px-1.5 py-0.5 font-mono text-accent-cyan">repo</code> and
+            <code class="ml-1 rounded bg-bg-tertiary px-1.5 py-0.5 font-mono text-accent-cyan">delete_repo</code> scopes
+          </p>
+        </div>
+
+        <div class="scroll-reveal">
+          <div class="relative mx-auto max-w-2xl">
+            <div class="landing-chip landing-chip-top">
+              <span class="text-xs uppercase tracking-[0.22em] text-accent-cyan">Insights</span>
+              <span class="mt-1 block text-lg font-semibold text-fg-primary">Weekly commits + repo spread</span>
+            </div>
+            <div class="landing-chip landing-chip-bottom">
+              <span class="text-xs uppercase tracking-[0.22em] text-accent-yellow">Safety</span>
+              <span class="mt-1 block text-lg font-semibold text-fg-primary">Opaque KV session IDs</span>
+            </div>
+
+            <div class="glass relative overflow-hidden rounded-[2rem] border border-border-default/80 p-5 shadow-[0_30px_120px_-48px_rgba(0,0,0,0.65)]">
+              <div class="absolute inset-x-8 top-0 h-px bg-gradient-to-r from-transparent via-accent-cyan/70 to-transparent" />
+
+              <div class="flex items-center justify-between rounded-2xl bg-bg-primary/70 px-4 py-3">
+                <div>
+                  <p class="text-xs uppercase tracking-[0.24em] text-fg-muted">Live Snapshot</p>
+                  <p class="mt-1 text-lg font-semibold">Agent-heavy GitHub account</p>
+                </div>
+                <div class="rounded-full bg-accent-green/15 px-3 py-1 text-xs font-medium text-accent-green">
+                  synced
+                </div>
+              </div>
+
+              <div class="mt-4 grid gap-4 lg:grid-cols-[1.2fr_0.8fr]">
+                <div class="rounded-2xl border border-border-default bg-bg-primary/75 p-4">
+                  <div class="flex items-end justify-between">
+                    <div>
+                      <p class="text-xs uppercase tracking-[0.22em] text-fg-muted">Commit Trend</p>
+                      <p class="mt-2 text-2xl font-semibold">2,487 commits</p>
+                    </div>
+                    <div class="rounded-full bg-accent-green/15 px-3 py-1 text-xs font-medium text-accent-green">
+                      +31% vs prior window
+                    </div>
+                  </div>
+
+                  <svg viewBox="0 0 520 220" class="mt-4 h-48 w-full">
+                    <defs>
+                      <linearGradient id="hero-area" x1="0" x2="0" y1="0" y2="1">
+                        <stop offset="0%" stop-color="var(--ss-accent-cyan)" stop-opacity="0.32" />
+                        <stop offset="100%" stop-color="var(--ss-accent-purple)" stop-opacity="0.02" />
+                      </linearGradient>
+                    </defs>
+                    <path d="M20 186 L20 170 L82 152 L144 160 L206 116 L268 126 L330 92 L392 58 L454 70 L500 44 L500 186 Z" fill="url(#hero-area)" />
+                    <polyline
+                      points="20,170 82,152 144,160 206,116 268,126 330,92 392,58 454,70 500,44"
+                      fill="none"
+                      stroke="var(--ss-accent-purple)"
+                      stroke-width="7"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    />
+                    <circle cx="392" cy="58" r="7" fill="var(--ss-accent-cyan)" />
+                    <circle cx="500" cy="44" r="7" fill="var(--ss-accent-cyan)" />
+                  </svg>
+
+                  <div class="mt-2 flex items-center justify-between text-xs text-fg-muted">
+                    <span>Jan 8</span>
+                    <span>Feb 12</span>
+                    <span>Mar 30</span>
+                  </div>
+                </div>
+
+                <div class="space-y-4">
+                  <div class="rounded-2xl border border-border-default bg-bg-primary/75 p-4">
+                    <p class="text-xs uppercase tracking-[0.22em] text-fg-muted">Repo Spread</p>
+                    <div class="mt-4 space-y-3">
+                      {[
+                        { name: "reposweep", width: "86%" },
+                        { name: "agent-runner", width: "62%" },
+                        { name: "prompt-lab", width: "44%" },
+                      ].map((item) => (
+                        <div>
+                          <div class="mb-1 flex items-center justify-between text-sm">
+                            <span>{item.name}</span>
+                            <span class="text-fg-muted">{item.width}</span>
+                          </div>
+                          <div class="h-2 rounded-full bg-bg-secondary">
+                            <div class="h-full rounded-full bg-gradient-to-r from-accent-cyan to-accent-purple" style={`width:${item.width};`} />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div class="rounded-2xl border border-border-default bg-bg-primary/75 p-4">
+                    <p class="text-xs uppercase tracking-[0.22em] text-fg-muted">Controls</p>
+                    <div class="mt-3 flex flex-wrap gap-2">
+                      <span class="rounded-full bg-accent-cyan/15 px-3 py-1 text-xs font-medium text-accent-cyan">90 days</span>
+                      <span class="rounded-full bg-bg-secondary px-3 py-1 text-xs text-fg-secondary">private only</span>
+                      <span class="rounded-full bg-bg-secondary px-3 py-1 text-xs text-fg-secondary">top 25 repos</span>
+                      <span class="rounded-full bg-bg-secondary px-3 py-1 text-xs text-fg-secondary">sort: last 7 days</span>
+                    </div>
+                    <div class="mt-4 rounded-2xl bg-bg-secondary/80 p-3 text-sm text-fg-secondary">
+                      Coverage-aware totals, weekly charting, and repo filters built for real-world GitHub sprawl.
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="pb-10">
+        <div class="grid gap-4 md:grid-cols-3">
+          {stats.map((stat) => (
+            <div class="glass rounded-2xl px-5 py-5">
+              <p class="text-xs uppercase tracking-[0.22em] text-fg-muted">{stat.label}</p>
+              <p class="mt-3 text-xl font-semibold text-fg-primary">{stat.value}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section class="pb-10 pt-12">
+        <div class="max-w-2xl">
+          <p class="text-sm uppercase tracking-[0.24em] text-accent-cyan">What Changed</p>
+          <h2 class="mt-3 text-3xl font-bold sm:text-4xl">It is not just a cleanup tool anymore.</h2>
+          <p class="mt-4 text-lg text-fg-secondary">
+            RepoSweep now helps you understand where commits are landing, which repos are absorbing the most energy,
+            and how your GitHub output is shifting over time, especially when agents start touching everything.
+          </p>
+        </div>
+
+        <div class="stagger mt-10 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+          {highlights.map((item) => (
+            <div class="glass rounded-2xl p-6">
+              <p class="text-xs uppercase tracking-[0.24em] text-accent-cyan">{item.eyebrow}</p>
+              <h3 class="mt-3 text-xl font-semibold">{item.title}</h3>
+              <p class="mt-3 text-sm leading-7 text-fg-secondary">{item.description}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section class="pb-24 pt-12">
+        <div class="mb-12 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+          <div class="max-w-2xl">
+            <p class="text-sm uppercase tracking-[0.24em] text-accent-cyan">Feature Set</p>
+            <h2 class="mt-3 text-3xl font-bold sm:text-4xl">Everything you need when your GitHub account gets loud.</h2>
+          </div>
+          <p class="max-w-xl text-sm leading-7 text-fg-muted">
+            The operational controls stay fast, but now they are paired with analytics and context so you can decide
+            what to change, not just click the change faster.
+          </p>
+        </div>
+
+        <div class="stagger grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {featureCards.map((feature) => (
+            <div class="glass rounded-2xl p-6">
+              <div class="mb-4 flex h-11 w-11 items-center justify-center rounded-xl bg-accent-purple/15">
+                <svg class="h-5 w-5 text-accent-purple" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <Fragment set:html={feature.icon} />
+                </svg>
+              </div>
+              <h3 class="text-lg font-semibold text-fg-primary">{feature.title}</h3>
+              <p class="mt-2 text-sm leading-7 text-fg-secondary">{feature.description}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+    </div>
   </div>
 </BaseLayout>
+
+<style>
+  .landing-halo {
+    position: absolute;
+    width: 32rem;
+    height: 32rem;
+    border-radius: 9999px;
+    filter: blur(70px);
+    opacity: 0.16;
+  }
+
+  .landing-halo-left {
+    left: -6rem;
+    top: 1rem;
+    background:
+      radial-gradient(circle at 30% 30%, var(--ss-accent-cyan), transparent 58%);
+  }
+
+  .landing-halo-right {
+    right: -8rem;
+    top: 4rem;
+    background:
+      radial-gradient(circle at 50% 50%, var(--ss-accent-purple), transparent 62%);
+  }
+
+  .landing-grid {
+    background-image:
+      linear-gradient(to right, color-mix(in srgb, var(--ss-border-default) 40%, transparent) 1px, transparent 1px),
+      linear-gradient(to bottom, color-mix(in srgb, var(--ss-border-default) 40%, transparent) 1px, transparent 1px);
+    background-size: 42px 42px;
+    mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.55), transparent 92%);
+  }
+
+  .landing-chip {
+    position: absolute;
+    z-index: 2;
+    max-width: 14rem;
+    border: 1px solid color-mix(in srgb, var(--ss-border-default) 72%, transparent);
+    background: color-mix(in srgb, var(--ss-bg-secondary) 88%, transparent);
+    backdrop-filter: blur(12px);
+    border-radius: 1.25rem;
+    padding: 0.9rem 1rem;
+    box-shadow: 0 18px 50px -35px rgba(0, 0, 0, 0.8);
+    animation: landing-float 6s ease-in-out infinite;
+  }
+
+  .landing-chip-top {
+    right: -1.4rem;
+    top: 2rem;
+  }
+
+  .landing-chip-bottom {
+    left: -1.1rem;
+    bottom: 1.75rem;
+    animation-delay: -2.5s;
+  }
+
+  @keyframes landing-float {
+    0%, 100% {
+      transform: translateY(0px);
+    }
+    50% {
+      transform: translateY(-9px);
+    }
+  }
+
+  @media (max-width: 1023px) {
+    .landing-chip {
+      position: static;
+      max-width: none;
+      margin-bottom: 1rem;
+      animation: none;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .landing-chip {
+      animation: none;
+    }
+  }
+</style>
