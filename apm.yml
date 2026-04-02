@@ -1,0 +1,11 @@
+name: reposweep
+version: 1.0.0
+description: GitHub repo management dashboard — toggle visibility, archive, rename, delete from one place
+author: Cody Williamson
+dependencies:
+  apm: []
+  mcp: []
+scripts:
+  dev: pnpm dev
+  build: pnpm build
+  lint: pnpm lint
