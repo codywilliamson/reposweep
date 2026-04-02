@@ -17,14 +17,14 @@
     "astro": "^5.5.0",
     "lucide-vue-next": "^0.525.0",
     "octokit": "^5.0.5",
-    "reka-ui": "^2.8.2",
+    "reka-ui": "^2.9.2",
     "vue": "^3.5.0"
   },
   "devDependencies": {
-    "@astrojs/check": "^0.9.0",
+    "@astrojs/check": "^0.9.8",
     "@tailwindcss/vite": "^4.2.1",
     "tailwindcss": "^4.2.1",
-    "typescript": "^5.8.0",
+    "typescript": "^6.0.2",
     "wrangler": "^4.78.0"
   },
   "pnpm": {
