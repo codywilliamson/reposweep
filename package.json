@@ -31,6 +31,11 @@
     "onlyBuiltDependencies": [
       "esbuild",
       "workerd"
-    ]
+    ],
+    "overrides": {
+      "undici": ">=7.24.4",
+      "vite": ">=7.3.2",
+      "defu": ">=6.1.5"
+    }
   }
 }
