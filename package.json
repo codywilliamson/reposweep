@@ -12,7 +12,7 @@
     "typecheck": "astro check"
   },
   "dependencies": {
-    "@astrojs/cloudflare": "^12.6.13",
+    "@astrojs/cloudflare": "^13.1.10",
     "@astrojs/vue": "^5.1.0",
     "astro": "^5.5.0",
     "lucide-vue-next": "^0.525.0",
